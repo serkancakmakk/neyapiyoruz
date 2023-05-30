@@ -1,5 +1,61 @@
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Kayıt Ol</button>
-  </form>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+<title>Register</title>
+
+<div class="login-container">
+    <img src="{% static 'register.png' %}" alt="Lock Icon" class="lock-icon">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          {{ form.username.label_tag }}
+          {{ form.username }}
+          {% if form.username.errors %}
+              <div class="alert alert-danger" role="alert">
+                  {% for error in form.username.errors %}
+                      {{ error }}
+                  {% endfor %}
+              </div>
+          {% endif %}
+      </div>
+        <div class="form-group">
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+              <div class="alert alert-danger" role="alert">
+                  {% for error in form.password1.errors %}
+                      {{ error }}
+                  {% endfor %}
+              </div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {% if form.username.errors %}
+              <div class="alert alert-danger" role="alert">
+                  {% for error in form.password2.errors %}
+                      {{ error }}
+                  {% endfor %}
+              </div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="alert alert-danger" role="alert">
+                  {% for error in form.email.errors %}
+                      {{ error }}
+                  {% endfor %}
+              </div>
+          {% endif %}
+        </div>
+        <button type="submit" class="btn" id="loginbtn">Register</button>
+    </form>
+</div>
+
+{% endblock content %}
