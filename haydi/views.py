@@ -21,10 +21,13 @@ from .forms import MekanForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+
 def get_ilceler(request, sehir_id):
     ilceler = SubRegion.objects.filter(region_id=sehir_id).values('id', 'name')
     return JsonResponse(list(ilceler), safe=False)
 # Create your views here.
+@login_required 
 def mekanekle(request,year=None, month=None):
     if year is None:
         year = datetime.now().year
@@ -125,20 +128,24 @@ def eventlist(request,year=None, month=None):
     data = create_calendar(year, month)
 
     return render(request, 'event_list.html',{'events':events,**data} )
+
 def eventdetail(request, slug, year=None, month=None):
     if year is None:
         year = datetime.now().year
     if month is None:
+        user = request.user
         month = datetime.now().strftime('%B')
         data = create_calendar(year, month)
         etkinlik = get_object_or_404(Event, slug=slug)
         katilimcilar = etkinlik.katilimcilar.all()
-    if etkinlik.silindi== True:
-        return render(request, 'etkinlik/etkinlik_silindi.html', {'etkinlik': etkinlik,**data})
+    if user.is_authenticated: #login decarotor yerine kullanıcının giriş yapıp yapmadığını kendim kontrol ettim
+        if etkinlik.silindi== True:
+            return render(request, 'etkinlik/etkinlik_silindi.html', {'etkinlik': etkinlik,**data})
 
+        else:
+            return render(request, 'etkinlik/eventdetail.html', {'etkinlik': etkinlik, 'katilimcilar': katilimcilar, **data})
     else:
-        return render(request, 'etkinlik/eventdetail.html', {'etkinlik': etkinlik, 'katilimcilar': katilimcilar, **data})
-
+        return redirect('login')
 
     
 
@@ -201,7 +208,7 @@ def etkinlik_sil(request, slug):
         else:
             messages.error(request, "Bu etkinliği silme yetkiniz yok.")
     return redirect('eventdetail', slug=slug)   
-        
+@login_required        
 def etkinlik_ekle(request,year=None, month=None):
     if year is None:
         year = datetime.now().year
@@ -229,7 +236,13 @@ def etkinlik_ekle(request,year=None, month=None):
 def get_mekanlar(request, ilce_id):
     mekanlar = Mekan.objects.filter(onayli=True,ilce_id=ilce_id).values('id', 'adi')
     return JsonResponse(list(mekanlar), safe=False)
-def register(request):
+def register(request,year=None,month=None):
+    if year is None:
+        year = datetime.now().year
+    if month is None:
+        month = datetime.now().strftime('%B')
+
+    data = create_calendar(year, month)
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -237,7 +250,8 @@ def register(request):
             return redirect('login')  # Kullanıcı başarıyla kaydedildikten sonra giriş sayfasına yönlendirilebilirsiniz
     else:
         form = RegistrationForm()
-    return render(request, 'register.html', {'form': form})
+    return render(request, 'register.html', {'form': form, **data})
+
 
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
@@ -335,7 +349,8 @@ def show_profile(request, username, year=None, month=None):
             'olusturdugu_etkinlik_sayisi': olusturdugu_etkinlik_sayisi
         }
     except User.DoesNotExist:
-        return render(request, 'profile/user_not_found.html')
+        messages.warning(request, "Kullanıcı Bulunamadı.")
+        return redirect('home')
     except Profile.DoesNotExist:
         return render(request, 'profile/profile_not_found.html')
 
@@ -346,18 +361,27 @@ def show_profile(request, username, year=None, month=None):
 
 
 
-def login_view(request):
+def login_view(request,year=None,month=None):
+    if year is None:
+        year = datetime.now().year
+    if month is None:
+        month = datetime.now().strftime('%B')
+        data = create_calendar(year, month)
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('update_profile',)
+            if user is not None:
+                if hasattr(user, 'profile'):
+                    return redirect('home')
+                else:
+                    return redirect('update_profile')
         else:
             messages.error(request, 'Kullanıcı adı veya şifre yanlış.')
     
-    return render(request, 'login.html')
+    return render(request, 'login.html', data)
 def my_profile(request, year=None, month=None):
     if year is None:
         year = datetime.now().year
@@ -382,6 +406,10 @@ def my_profile(request, year=None, month=None):
 
 from django.contrib import messages
 def custom_logout(request):
-    logout(request)
-    messages.info(request, "Logged out successfully!")
-    return redirect("homepage")
+    user = request.user
+    if user.is_authenticated:
+        logout(request)
+        messages.info(request, "Çıkış Yapıldı !")
+        return redirect("home")
+    else:
+        return redirect("home")
