@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1>Merhaba {{request.user.first_name|title}}</h1>
+    <h5>Tüm Etkinlikler Bunlar :</h5>
+</center>
+{% for event in events %}
+    <h2>{{ event.ad }}</h2>
+    <p>{{ event.baslik }}</p>
+    <!-- Diğer etkinlik bilgilerini burada gösterin -->
+{% endfor %}
+<div class="row">
+    {% for event in events  %}
+    <div class="col-sm-6">
+      <div class="card">
+        <h5 class="card-header">{{event.ad}}</h5>
+        <div class="card-body">
+          <p class="card-text">Etkinlik Günü : <strong>{{ event.gün }}</strong></p>
+          <p class="card-text">Etkinlik Yeri : <strong>{{event.mekan}}</strong></p>
+          <p class="card-text">Açıklama : <strong>{{event.açiklama}}</strong></p>
+          <p class="card-text">Katılımcılar :</p>
+          <ul>
+            {% for katilimci in event.katilimcilar.all %}
+                <li>{{ katilimci.isim }}</li>
+            {% endfor %}
+          </ul>
+
+
+          <a href="{%url 'eventdetail' event.slug %}" class="btn btn-primary">Go somewhere</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+</div>
+
+<center>
+
+    {% for event in events  %}
+    {{event.ad}}
+    {{event.yönetici}}
+    {{event.katilimcilar.all}}
+    {% endfor %}
+    Copry(c){{current_year}}
+</center>
+
+
+{% endblock content %}

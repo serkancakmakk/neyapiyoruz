@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{{user.id}}
+<script src="{% static 'js/sehir.js' %}"></script>
+  <div class="container">
+    <br/>
+    {% if form.errors %}
+  <div class="alert alert-danger" role="alert">
+    Formda hatalar var:
+    <ul>
+    {% for field in form %}
+      {% for error in field.errors %}
+        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+      {% endfor %}
+    {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+    <center>
+    <br/>
+    <br/>
+    <h1 class="text-center">Mekan Başvuru Formu</h1>
+    {% if submitted %}
+      <p>Mekan Başvurunuz Alınmıştır</p>
+      <a href="{%url 'home' %}" class="btn btn-info">Anasayfaya Dön</a>
+    {% else %}
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group col-md-4 mb-3">
+        <input type="text" class="form-control" name="adi" placeholder="Mekanın Adı">
+      </div>
+      <div class="form-group col-md-4 mb-3">
+        <input type="text" class="form-control" name="adres" placeholder="Adres">
+      </div>
+      <div class="form-group col-md-4 mb-3">
+        <small class="form-text text-muted">Şehir seçiniz</small>
+        {{ form.sehir }}
+        {% if errors.sehir %}
+          <p class="text-danger">{{ errors.sehir }}</p>
+        {% endif %}
+      </div>
+      <div class="form-group col-md-4 mb-3">
+        <small class="form-text text-muted">İlçe seçiniz</small>
+        {{ form.ilce }}
+        {% if errors.sehir %}
+          <p class="text-danger">{{ errors.ilce }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="form-group col-md-4 mb-3">
+        <input type="text" class="form-control" name="email" placeholder="E-mail">
+      </div>
+      <div class="form-group col-md-4 mb-3">
+        {{form.aciklama}}
+      </div>
+      <div class="form-group col-md-4 mb-3">
+        <input type="text" class="form-control" name="telefon_numarasi" placeholder="Telefon Numarası" maxlength="11">
+      </div>
+      <div class="form-group col-md-4 mb-3">
+        <input type="text" class="form-control" name="webadresi" placeholder="Web Adresi">
+      </div>
+      <br/>
+      <button type="submit" class="btn btn-primary btn-block col-md-4 mb-3">Başvuru Oluştur</button>
+    </form>
+    {% endif %}
+    <br/>
+    {% if form.errors %}
+{% endif %}
+  </div>
+</center>
+  </form>
+  {% endblock content %}

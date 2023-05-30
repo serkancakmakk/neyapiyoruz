@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'navbar.css' %}">
+
+<div class="card">
+    <h5 class="card-header">{{mekan.adi}}</h5>
+    <div class="card-body">
+      <h5 class="card-title">{{mekan.aciklama}}</h5>
+    </div>
+  </div>
+  <h1>{{ mekan.adi }} Etkinlikleri</h1>
+  <div class="container">
+    {% for etkinlik in etkinlikler %}
+        {% if not etkinlik.silindi %}
+            {% if forloop.counter0|divisibleby:3 %}
+                <div class="row">
+            {% endif %}
+            <div class="col-sm">
+                <div class="card" id="yeretkinlik" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ etkinlik.ad }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                        <a href="{% url 'eventdetail' etkinlik.slug %}" class="card-link">Another link</a>
+                    </div>
+                </div>
+            </div>
+            {% if forloop.counter|divisibleby:3 or forloop.last %}
+                </div>
+                <br/>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div>
+
+{% endblock %}

@@ -1,0 +1,15 @@
+<h1>Profil Bilgileri</h1>
+<p>Kullanıcı Adı: {{ profile.user.username }}</p>
+<p>E-posta: {{ profile.user.email }}</p>
+<p>Katıldığı Etkinlikler: {{ katildigi_etkinlik_sayisi }}</p>
+<ul>
+  {% for etkinlik in katildigi_etkinlikler %}
+    <li>{{ etkinlik.ad }}</li>
+  {% endfor %}
+</ul>
+<p>Oluşturduğu Etkinlikler: {{ olusturdugu_etkinlik_sayisi }}</p>
+<ul>
+  {% for etkinlik in olusturdugu_etkinlikler %}
+    <li>{{ etkinlik.ad }}</li>
+  {% endfor %}
+</ul>

@@ -1,0 +1,117 @@
+
+.hm-gradient {
+        background-image: linear-gradient(to top, #f3e7e9 0%, #e3eeff 99%, #e3eeff 100%);
+    }
+.navbar .dropdown-menu a:hover {
+        color: #616161 !important;
+    }
+.darken-grey-text {
+        color: #2E2E2E;
+    }
+    .navbar {
+        background-color: #17a2b8;
+    }
+    .navbar-brand {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .today {
+        background-color: #ffcc00;
+        border-radius: 50%;
+        width: 2em;
+        height: 2em;
+        line-height: 2em;
+        text-align: center;
+        vertical-align: middle;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@700&family=Poppins:wght@600&display=swap');
+
+    * {
+        box-sizing: border-box
+    }
+    
+    body {
+        background-color: #d9ecf2;
+        font-family: 'Poppins', sans-serif;
+        color: #666
+    }
+    
+    .h2 {
+        color: #444;
+        font-family: 'PT Sans', sans-serif
+    }
+    
+    thead {
+        font-family: 'Poppins', sans-serif;
+        font-weight: bolder;
+        font-size: 20px;
+        color: #666
+    }
+    
+    img {
+        width: 40px;
+        height: 40px
+    }
+    
+    .name {
+        display: inline-block
+    }
+    
+    .bg-blue {
+        background-color: #EBF5FB;
+        border-radius: 8px
+    }
+    
+    .fa-check,
+    .fa-minus {
+        color: blue
+    }
+    
+    .bg-blue:hover {
+        background-color: #3e64ff;
+        color: #eee;
+        cursor: pointer
+    }
+    
+    .bg-blue:hover .fa-check,
+    .bg-blue:hover .fa-minus {
+        background-color: #3e64ff;
+        color: #eee
+    }
+    
+    .table thead th,
+    .table td {
+        border: none
+    }
+    
+    .table tbody td:first-child {
+        border-bottom-left-radius: 10px;
+        border-top-left-radius: 10px
+    }
+    
+    .table tbody td:last-child {
+        border-bottom-right-radius: 10px;
+        border-top-right-radius: 10px
+    }
+    
+    #spacing-row {
+        height: 10px
+    }
+    
+    @media(max-width:575px) {
+        .container {
+            width: 125%;
+            padding: 20px 10px
+        }
+    }
+
+.current-day {
+        border: 2px solid red;
+        border-radius: 50%;
+        display: inline-block;
+    }
+#yeretkinlik:hover {
+        transform: scale(1.2);
+      }

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+<div class="row">
+    <div class="col-md-3">
+        <h1 class="display-1">Etkinlik İçin Yerler</h1>
+    </div>
+    <div class="col-md-9">
+        <br/>
+        
+            <div class="card-group">
+                {% for yer in mekan %}
+                <div class="col-md-4 mb-3">
+            <div class="card">
+                <img class="card-img-top" src="..." alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">{{ yer.adi }}</h5>
+                    <p class="card-text">{{ yer.adres }}</p>
+                    <p class="card-text">{{ yer.telefon }}</p>
+                    <p class="card-text">{{yer.webadresi }}</p>
+                    <p class="card-text">{{ yer.email }}</p>
+                    <p class="card-text"><small class="text-muted">{{ m.onay_tarihi }}</small></p>
+                    <a href="{% url 'yer_detay' yer.pk %}" class="btn btn-info">Yeri İncele</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <center>
+        <div class="col-md-6">
+        <p class="display-4">Henüz mekan eklenmemiş.</p>
+        </div>
+    </center>
+        {% endfor %}
+
+    </div>  
+
+{% endblock %}

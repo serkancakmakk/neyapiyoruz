@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="content">
+  <div class="card">
+    <div class="row g-0">
+      <div class="col-md-4">
+        <div class="d-flex align-items-center justify-content-center" style="height: 100%;">
+          <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h5 class="card-title">{{user.profile.ad|title}} {{user.profile.soyad|title}}</h5>
+          <p class="card-text">Full Stack Developer</p>
+          <ul class="list-group list-group-flush">
+            {% if user.profile.telefon != None %}
+            <li class="list-group-item"><i class="mdi mdi-phone font-size-15 align-middle pe-2 text-primary"></i>{{user.profile.telefon}}</li>
+            {% else %}
+            <li class="list-group-item"><i class="mdi mdi-phone font-size-15 align-middle pe-2 text-primary"></i>Telefon Yok</li>
+            {% endif %}
+            <li class="list-group-item"><i class="mdi mdi-email font-size-15 align-middle pe-2 text-primary"></i>{{user.profile.email}}</li>
+            <li class="list-group-item"><i class="mdi mdi-account-plus font-size-15 align-middle pe-2 text-primary"> </i><strong>Katıldığınız Etkinlikler</strong> <span class="badge badge-info"> {{ katildigi_etkinlikler.count }}</span></li>
+            <li class="list-group-item"><i class="mdi mdi-account-edit font-size-15 align-middle pe-2 text-primary"> </i><strong>Oluşturduğunuz Etkinlikler </strong><span class="badge badge-info"> {{ olusturdugu_etkinlik_sayisi }}</span></li>
+          </ul>
+          <div class="d-grid gap-2 mt-4">
+            <a href="{% url 'update_profile' %}" class="btn btn-primary">Güncelle</a>
+
+            <button type="button" class="btn btn-primary">Contact</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

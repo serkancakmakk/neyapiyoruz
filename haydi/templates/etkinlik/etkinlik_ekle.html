@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+  <div class="container">
+    <br/>
+    
+  
+  <script>
+      {% if messages %}
+          $(document).ready(function() {
+              $('#errorModal').modal('show');
+          });
+      {% endif %}
+  </script>
+    <center>
+      <br/>
+      <br/>
+      <h1 class="text-center">Etkinlik Oluştur</h1>
+      {% if submitted %}
+        <p>Mekan Başvurunuz Alınmıştır</p>
+        <a href="{% url 'home' %}" class="btn btn-info">Anasayfaya Dön</a>
+      {% else %}
+        <form method="POST">
+          {% csrf_token %}
+          <div class="form-group col-md-4 mb-3">
+            <input type="text" class="form-control" name="ad" placeholder="Etkinlik Adı">
+          </div>
+          <div class="form-group col-md-4 mb-3">
+            <small class="form-text text-muted">Şehir seçiniz</small>
+            {{ form.sehir }}
+            {% if errors.sehir %}
+              <p class="text-danger">{{ errors.sehir }}</p>
+            {% endif %}
+          </div>
+          <div class="form-group col-md-4 mb-3">
+            <small class="form-text text-muted">İlçe seçiniz</small>
+            {{ form.ilce }}
+            {% if errors.sehir %}
+              <p class="text-danger">{{ errors.ilce }}</p>
+            {% endif %}
+          </div>
+          <div class="form-group col-md-4 mb-3">
+            {{ form.mekan }}
+          </div>
+          <div class="form-group col-md-4 mb-3">
+            {{ form.gün }}
+          </div>
+          <div class="form-group col-md-4 mb-3">
+            {{ form.saat }}
+          </div>
+          <div class="form-group col-md-8 mb-5">
+            <small class="form-text text-muted">Açıklama Giriniz</small>
+            {{ form.açiklama }}
+          </div>
+          <br/>
+          <button type="submit" class="btn btn-primary btn-block col-md-4 mb-3">Başvuru Oluştur</button>
+        </form>
+
+      {% endif %}
+<!-- Modal kodu -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="errorModalLabel"><strong>Hata</strong></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        {% if form.errors %}
+          <div class="alert alert-danger" role="alert">
+            Formda hatalar var:
+            <ul>
+              {% for field in form %}
+                {% for error in field.errors %}
+                  <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-warning">
+            {% for error in form.non_field_errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Modalı tetikle
+    {% if form.errors or form.non_field_errors %}
+      $(document).ready(function() {
+        $('#errorModal').modal('show');
+      });
+    {% endif %}
+  </script>
+    </center>
+  </div>
+
+  <script>
+   // İl değiştiğinde ilçe alanını güncelle
+// İl değiştiğinde ilçe alanını güncelle
+document.getElementById('sehir-select').addEventListener('change', function() {
+    var sehirId = this.value;
+    var ilceSelect = document.getElementById('ilce-select');
+    var mekanSelect = document.getElementById('mekan-select');
+  
+    // İlçe ve mekan alanlarını boşalt
+    ilceSelect.innerHTML = '';
+    mekanSelect.innerHTML = '<option value="">---------</option>';
+  
+    // İlçeleri almak için AJAX isteği gönder
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/get-ilceler/' + sehirId + '/');
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        var ilceler = JSON.parse(xhr.responseText);
+  
+        // İlçe seçeneklerini oluştur
+        ilceler.forEach(function(ilce) {
+          var option = document.createElement('option');
+          option.value = ilce.id;
+          option.textContent = ilce.name;
+          ilceSelect.appendChild(option);
+        });
+      }
+    };
+    xhr.send();
+  });
+  
+  // İlçe değiştiğinde mekan alanını güncelle
+  document.getElementById('ilce-select').addEventListener('change', function() {
+    var ilceId = this.value;
+    var mekanSelect = document.getElementById('mekan-select');
+  
+    // Mekan alanını boşalt
+    mekanSelect.innerHTML = '<option value="">---------</option>';
+  
+    // Mekanları almak için AJAX isteği gönder
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/get-mekanlar/' + ilceId + '/');
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        var mekanlar = JSON.parse(xhr.responseText);
+  
+        // Mekan seçeneklerini oluştur
+        mekanlar.forEach(function(mekan) {
+          var option = document.createElement('option');
+          option.value = mekan.id;
+          option.textContent = mekan.adi;
+          mekanSelect.appendChild(option);
+        });
+      }
+    };
+    xhr.send();
+  });
+  </script>
+  
+{% endblock content %}

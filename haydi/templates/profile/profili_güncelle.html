@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-8">col-8
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-group col-md-4 mb-3">
+                Soyadınız
+                {{ form.soyad }}
+              </div>
+              <div class="col-auto">
+                <label class="sr-only" for="inlineFormInputGroup">Username</label>
+                <div class="input-group mb-2">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text">@</div>
+                  </div>
+                  <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="Username">
+                </div>
+              </div>
+            {{form.ad}}
+            <button type="submit">Güncelle</button>
+        </form>
+
+    </div>
+    <div class="col-4">
+        <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+
+    </div>
+  </div>
+
+<img src="{{profile.user.profile_img.url}}" alt="Girl in a jacket" width="500" height="600">
+<img src="{{ profile.profile_img.url }}" alt="Profil Fotoğrafı" style="width: 200px; height: 200px;">
+<img src="{{ request.user.profile_img.url }}" alt="Profil Fotoğrafı">
+
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    {% if searched %}
+    <p>Bu yer için arama sonuçları: {{ searched }}</p>
+{% endif %}
+    <div class="row">
+      <div class="col">
+        <h2>Yerler:</h2>
+        {% for yer in yerler %}
+        <div class="card">
+            <h5 class="card-header">{{yer.adi}}</h5>
+            <div class="card-body">
+              <h5 class="card-title">{{yer.açiklama}}</h5>
+              <p class="card-text">{{yer.sehir}}</p>
+              <p class="card-text">{{yer.ilce}}</p>
+              <p class="card-text">{{yer.adres}}</p>
+              <p class="card-text">{{yer.onay_tarihi}}</p>
+              <a href="{%url 'yer_detay' yer.pk  %}" class="btn btn-info">Etkinlik Detayına Git</a>
+              <a href="#" class="btn btn-primary disabled">{{etkinlik.yönetici}}</a>
+            </div>
+          </div>
+          <br/>
+        {% empty %}
+            <p>Yer bulunamadı.</p>
+        {% endfor %}
+        
+      </div>
+      <div class="col">
+        <h2>Etkinlikler:</h2>
+        {% for etkinlik in etkinlikler %}
+        <div class="card">
+            <h5 class="card-header">{{etkinlik.ad}}</h5>
+            <div class="card-body">
+              <h5 class="card-title">{{etkinlik.açiklama}}</h5>
+              <p class="card-text">{{etkinlik.mekan}}</p>
+              <p class="card-text">{{etkinlik.slug}}</p>
+              <a href="{%url 'eventdetail' etkinlik.slug %}" class="btn btn-info">Etkinlik Detayına Git</a>
+              <a href="#" class="btn btn-primary disabled">{{etkinlik.yönetici}}</a>
+            </div>
+          </div>
+          <br/>
+        {% empty %}
+            <p>Etkinlik bulunamadı.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+
+
+
+{% endblock content %}
