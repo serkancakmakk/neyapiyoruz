@@ -26,33 +26,51 @@
   
         </li>
       </ul>
+      
       <ul class="navbar-nav ml-auto">
         <li class="nav-item active">
           {% comment %} <a class="nav-link " href="{% url 'eventlist' %}">Etkinlikler</a> {% endcomment %}
         </li>
+        {% if user.is_authenticated %}
         <li class="nav-item active">
           <a class="nav-link" href="{%url 'mekanekle' %}">Mekan Başvuru</a>
         </li>
+        {% endif %}
         {% if user.is_authenticated %}
         <li class="nav-item active dropdown">
           <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             {{request.user.username}}
           </a>
-          {% else %}
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Dropdown
-            </a>
-            {% endif %}
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="{%url 'yer_listesi' %}">Yer Listesi</a>
-            <a class="dropdown-item" href="{% url 'etkinlik_ekle' %}">Etkinlik Ekle</a>
+            <a class="dropdown-item" href="{% url 'yer_listesi' %}">
+                <i class="fas fa-map-marker-alt"></i> Yer Listesi
+            </a>
+            <a class="dropdown-item" href="{% url 'etkinlik_ekle' %}">
+                <i class="fas fa-calendar-plus"></i> Etkinlik Ekle
+            </a>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="{%url 'my_profile' %}">Profilim</a>
-            <a class="dropdown-item" href="{% url 'update_profile' %}">Profili Güncelle</a>
-            
-          </div>
+            <a class="dropdown-item" href="{% url 'my_profile' %}">
+                <i class="fas fa-user"></i> Profilim
+            </a>
+            <a class="dropdown-item" href="{% url 'update_profile' %}">
+                <i class="fas fa-user-edit"></i> Profili Güncelle
+            </a>
+            <a class="dropdown-item" href="{% url 'logout' %}">
+                <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+            </a>
+        </div>
+        
         </li>
+        {% else %}
+        <li class="nav-item active dropdown">
+          <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Kullanıcı İşlemleri
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="{%url 'login' %}">Giriş Yap</a>
+            <a class="dropdown-item" href="{% url 'register' %}">Kayıt Ol</a>
+        </li>
+        {% endif %}
         <form class="form-inline my-2 my-lg-0" method="POST" action="{%url 'arama_sonuclari' %}">
           {% csrf_token %}
           <input class="form-control mr-sm-2" type="text" placeholder="Search" name="searched">
