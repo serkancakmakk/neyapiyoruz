@@ -8,6 +8,7 @@ from cities_light.models import SubRegion, Region
 from ckeditor.fields import RichTextField
 
 from django.utils.crypto import get_random_string
+
 def user_directory_path(instance, filename):
     # Dosya adını kullanıcı adı ile değiştir
     ext = filename.split('.')[-1]
@@ -31,6 +32,7 @@ class Mekan(models.Model):
     sehir = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, related_name='sehir')
     ilce = models.ForeignKey(SubRegion, on_delete=models.SET_NULL, null=True, blank=True)
     aciklama = models.TextField('Mekan Açıklaması', null=True, blank=True)
+    olusturan = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     onayli = models.BooleanField('Onaylı', default=False)
     onay_tarihi = models.DateTimeField('Onay Tarihi', null=True, blank=True)
     def save(self, *args, **kwargs):
@@ -40,28 +42,6 @@ class Mekan(models.Model):
 
     def __str__(self):
         return self.adi
-
-# class Profile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     ad = models.CharField(max_length=20)
-#     soyad = models.CharField(max_length=20)
-#     activity_count = models.IntegerField(default=0)
-#     profile_img = models.ImageField(upload_to=user_directory_path)
-#     email = models.EmailField(null=True, blank=True)
-#     telefon = models.CharField(max_length=11, blank=True, null=True)
-#     kayit_tarihi = models.DateTimeField(auto_now_add=True)
-#     katildigi_etkinlikler = models.ManyToManyField(Event, related_name='katilimcilar', blank=True)
-#     @property
-#     def username(self):
-#         return self.user.username
-
-#     def __str__(self):
-#         return self.ad
-
-#     def update_username(self, new_username, new_password):
-#         self.user.username = new_username
-#         self.user.set_password(new_password)
-#         self.user.save()
 class Event(models.Model):
     ad = models.CharField('Etkinlik Adı', max_length=120)
     baslik = models.CharField('Baslik', max_length=50, null=True, blank=True)
@@ -104,6 +84,7 @@ class Profile(models.Model):
     kayit_tarihi = models.DateTimeField(auto_now_add=True)
     katildigi_etkinlikler = models.ManyToManyField(Event, related_name='katilimcilar_profil', blank=True)
     olusturdugu_etkinlikler = models.ManyToManyField(Event, related_name='olusturan_profil', blank=True)
+
     @property
     def username(self):
         return self.user.username
