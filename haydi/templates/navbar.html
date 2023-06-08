@@ -1,9 +1,8 @@
 {% load static %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-cyan">
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand" href="{%url 'home' %}">
         <div class="logo-container">
-          <img src="logo.png" alt="Logo" class="logo-img">
-          <i class="fa fa-angle-down dropdown-icon"></i>
+          <img src="{% static 'icon.png' %}" alt="Logo" class="logo-img">
         </div>
       </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,14 +15,11 @@
                 <a class="nav-link" href="{% url 'home' year=current_year month=current_month|lower %}">Ne Yapıyoruz ?<span class="sr-only">(current)</span></a>
               </li>
               <li class="nav-item active">
-                <a class="nav-link" href="{% url 'home' year=current_year month=current_month|lower %}">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' year=current_year month=current_month|lower %}">Home <span class="sr-only">(current)</span></a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'home' year=next_year month=next_month %}">{{next_month|title}} <span class="sr-only">(current)</span></a>
               </li>
-              
-  
-  
         </li>
       </ul>
       
@@ -33,7 +29,9 @@
         </li>
         {% if user.is_authenticated %}
         <li class="nav-item active">
-          <a class="nav-link" href="{%url 'mekanekle' %}">Mekan Başvuru</a>
+          <a class="nav-link {% if request.path_info == '/mekanekle/' %}active{% endif %}" href="{% url 'mekanekle' %}">Mekan Başvuru</a>
+
+
         </li>
         {% endif %}
         {% if user.is_authenticated %}
@@ -48,6 +46,12 @@
             <a class="dropdown-item" href="{% url 'etkinlik_ekle' %}">
                 <i class="fas fa-calendar-plus"></i> Etkinlik Ekle
             </a>
+            <a class="dropdown-item" href="{% url 'sahip_oldugunuz_mekanlar' %}">
+              <i class="fa-solid fa-house-lock"></i> Mekanlar
+          </a>
+          <a class="dropdown-item" href="{% url 'etkinliklerim' %}">
+            <i class="fa-solid fa-hat-wizard"></i> Etkinliklerim
+        </a>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="{% url 'my_profile' %}">
                 <i class="fas fa-user"></i> Profilim
@@ -67,8 +71,8 @@
             Kullanıcı İşlemleri
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="{%url 'login' %}">Giriş Yap</a>
-            <a class="dropdown-item" href="{% url 'register' %}">Kayıt Ol</a>
+            <a class="dropdown-item" href="{%url 'login' %}"><i class="fas fa-sign-in-alt"></i> Giriş Yap</a>
+            <a class="dropdown-item" href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Kayıt Ol</a>
         </li>
         {% endif %}
         <form class="form-inline my-2 my-lg-0" method="POST" action="{%url 'arama_sonuclari' %}">

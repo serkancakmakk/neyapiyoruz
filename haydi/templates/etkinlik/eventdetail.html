@@ -1,159 +1,400 @@
 {% extends 'base.html' %}
 {% load tz %}
+{% load static %}
 {% block content %}
-{{ etkinlik.yönetici_event_set.ad }} - {{ etkinlik.ad }}
-<div class="card">
-    <h5 class="card-header">{{etkinlik.ad}}</h5>
-    <div class="card-body">
-      <h5 class="card-title">{{etkinlik.açiklama|safe}}</h5>
-      <p class="card-text">{{etkinlik.mekan}}</p>
-      <p class="card-text">{{etkinlik.gün|date:"F j, Y"}}</p>
-      <p class="card-text">{{ etkinlik.saat|time:"H:i" }}</p>
-
-      <a href="#" class="btn btn-primary disabled">{{etkinlik.yönetici}}</a>
-    </div>
-  </div>
-  <div class="container rounded mt-2 bg-white p-md-2">
-    <div class="h2 font-weight-bold">Yönetici</div>
-    <div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col-1">Ad Soyad </th>
-                    <th scope="col-2">Ad Soyad</th>
-                    <th scope="col-3">Üye Olma Tarihi</th>
-                    <th scope="col-4">Telefon</th>
-                    <th scope="col-5">Profil</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="bg-blue">
-                    <td class="pt-2"> <img src="{{ etkinlik.yönetici.profile.profile_img.url }}" class="rounded-circle" alt="">
-
-                        <div class="pl-lg-5 pl-md-3 pl-1 name">{{ katilimci.isim }} {{katilimci.soyad}}</div>
-                    </td>
-                    <td class="pt-3 mt-1">{{etkinlik.yönetici.profile.ad|title}} {{etkinlik.yönetici.profile.soyad|title}}</td>
-                    <td class="pt-3 mt-1">{{ etkinlik.yönetici.profile.kayit_tarihi|date:"d F Y"|safe }}</td>
-
-                    <td class="pt-3 mt-1">{{ etkinlik.yönetici.profile.telefon|slice:":5" }}</td>
-                    <td class="pt-3 mt-1"><span class="fa-solid fa-user"></span></td>
-                </tr>
-                <tr id="spacing-row">
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-<div class="container rounded mt-5 bg-white p-md-5">
-    <div class="h2 font-weight-bold">Katılımcılar</div>
-    <div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Ad Soyad</th>
-                    <th scope="col">Üye Olma Tarihi</th>
-                    <th scope="col">Durumu</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="bg-blue">
-                    {% for katilimci in event.katilimcilar.all %}
-                    <td class="pt-2"> <img src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" class="rounded-circle" alt="">
-                        <div class="pl-lg-5 pl-md-3 pl-1 name">{{ katilimci.isim }} {{katilimci.soyad}}</div>
-                    </td>
-                    <td class="pt-3 mt-1">{{katilimci.kayit_tarihi|date:"M d, Y"}}</td>
-                    <td class="pt-3"><span class="fa fa-check pl-3"></span></td>
-                    <td class="pt-3">
-                        <a href="{% url 'home' %}" class="fa fa-ellipsis-v btn"></a>
-                    </td>
-                </tr>
-                <tr id="spacing-row">
-                    <td>asdas</td>
-                </tr>
-                
-                
-            {% endfor %}
-        {% if etkinlik.yönetici == request.user %}
-            {% else %}
-                {% if request.user in katilimcilar %}
-                    <a href="{% url 'katilmayi_birak' etkinlik.slug %}" class="btn btn-danger">Bırak</a>
-                {% else %}
-                    <a href="{% url 'katilimci_ol' etkinlik.slug %}" class="btn btn-primary">Katıl</a>
-                {% endif %}
-        {% endif %}
-        {% if etkinlik.yönetici == request.user %}
-        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#silModal">Etkinliği Sil</button>
-        <div class="modal fade" id="silModal" tabindex="-1" role="dialog" aria-labelledby="silModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="silModalLabel">Etkinlik Sil</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body">
-                  <p>Etkinliği silmek istediğinize emin misiniz?</p>
-                  <small>
-                    <li>Silinen Etkinlik Geri Alınamaz</li>
-                    
-                </small>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
-                  <form method="POST" action="{% url 'etkinlik_sil' etkinlik.slug %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Sil</button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-          {% endif %}
-        <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="errorModalLabel"><strong>Hata</strong></h5>
-                        
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+<link rel="stylesheet" href="{% static 'css/alert.css' %}">
+<br />
+<div class="container">
+    <!-- Start Container -->
+    <div class="row">
+        <!-- Start row -->
+        <div class="col-8">
+            <!-- Start col-8 -->
+            <div class="card">
+                <!-- Start card -->
+                <h5 class="card-header">
+                    <!-- Start Card Header -->
+                    <span>{{ etkinlik.ad }}</span>
+                    {% if etkinlik.katilimci_kontrol %}
+                    <span id="kontenjan" data-toggle="tooltip" data-placement="top"
+                        title="Bu Etkinlikte Kontenjan Kontrolü Yapılıyor"><i class="fa-solid fa-question"></i>
+                        Kontenjan {{ etkinlik.kontenjan }}</span>
+                    {% endif %}
+                    {% if request.user == etkinlik.yönetici %}
+                    <div class="dropdown" id="dangerzone">
+                        <!-- Start dropdown dangerzone-->
+                        <a class="dropdown" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-cog"></i>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                            <!-- Start dropdown menu link-->
+                            <a class="dropdown-item" href="{% url 'etkinlik_düzenle' etkinlik.slug %}">Etkinliği
+                                Düzenle</a>
+                            <a class="dropdown-item" href="{% url 'etkinlik_sil' etkinlik.slug %}" data-toggle="modal"
+                                data-target="#silModal">Etkinliği Sil</a>
+                            <a class="dropdown-item danger" href="#">Tehlikeli Alan</a>
+                        </div>
+                        <!-- End dropdown menu link-->
                     </div>
-                    <div class="modal-body">
-                        {% if messages %}
-                            <div class="alert alert-warning">
-                                
-                                    {% for message in messages %}
-                                        {{ message }}
+                    <!-- End dropdown dangerzone-->
+                    {% else %}
+                    {% if etkinlik.yönetici == request.user %}
+                    {% else %}
+                    {% if request.user in katilimcilar %}
+                    <a href="{% url 'katilmayi_birak' etkinlik.slug %}" class="btn btn-danger"><span
+                            class="tooltip-content">Bırak</span></a>
+                    {% else %}
+                    <a href="{% url 'katilimci_ol' etkinlik.slug %}" class="btn btn-primary">Katıl</a>
+                    {% endif %}
+                    {% endif %}
+                    {% endif %}
+                </h5>
+                <!-- End Card Header -->
+                <div class="card-body">
+                    <!-- Start Card Body -->
+                    <h5 class="card-title">{{ etkinlik.açiklama|safe }}</h5>
+                    <p class="card-text">{{ etkinlik.mekan }}</p>
+                    <p class="card-text">{{ etkinlik.gün|date:"F j, Y" }}</p>
+                    <p class="card-text">{{ etkinlik.saat|time:"H:i" }}</p>
+                    <a href="#" class="btn btn-primary disabled">{{ etkinlik.yönetici }}</a>
+                </div>
+                <!-- End Card Body -->
+            </div>
+            <!-- End card -->
+            <div class="row">
+                <!--Start Table row-->
+                <div class="col-lg-12">
+                    <!--Start col-lg-12-->
+                    <div class="main-box clearfix">
+                        <!--Start main-box clearfix-->
+                        <div class="table-responsive">
+                            <!--Start table responsive-->
+                            <table class="table user-list">
+                                <!--Start user list-->
+                                <thead>
+                                    <!--Start thead-->
+                                    <tr>
+                                        <!--Start tr-->
+                                        <th>
+                                            <span>Katılımcılar</span>
+                                        </th>
+                                        <th>
+                                            <span>Kayıt Tarihi</span>
+                                        </th>
+                                        <th class="text-center">
+                                            <span>Durumu</span>
+                                        </th>
+                                        <th>
+                                            <span>Email</span>
+                                        </th>
+                                        <th>&nbsp;</th>
+                                    </tr>
+                                    <!--end tr-->
+                                </thead>
+                                <!--end thead-->
+                                <tbody>
+                                    <!--start tbody-->
+                                    {% for katilimci in katilimcilar %}
+                                    <tr>
+                                        <!--start tr-->
+                                        <td>
+                                            <!--start profile_img td-->
+                                            <img src="{{ katilimci.profile.profile_img.url }}" alt="" width:>
+                                            <a href="#" class="user-link">{{ katilimci.ad }}{{ katilimci.soyad }}</a>
+                                            <span class="user-subhead">{{ katilimci.profile.ad }}
+                                                {{ katilimci.profile.soyad }}</span>
+                                        </td>
+                                        <!--end td-->
+                                        <td>
+                                            <!--start datejoined td-->
+                                            {{ katilimci.date_joined|date:"d M Y" }}
+                                        </td>
+                                        <!--end datejoined td-->
+                                        <td class="text-center">
+                                            <!--start td text center user active-->
+                                            {% if katilimci.is_active %}
+                                            <span class="badge bg-success">&#10004;</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">&#10006;</span>
+                                            {% endif %}
+                                        </td>
+                                        <!--end td text center user active-->
+                                        <td>
+                                            <!--start td email-->
+                                            <a href="#">{{ katilimci.profile.email }}</a>
+                                        </td>
+                                        <!--end td email-->
+                                        <td>
+                                            <!--start actions td-->
+                                            <form method="POST"
+                                                action="{% url 'etkinlikten_at' katilimci.pk etkinlik.slug %}">
+                                                {% csrf_token %}
+                                                <a href="{% url 'show_profile' katilimci.username %}"
+                                                    class="table-link">
+                                                    <span class="fa-stack">
+                                                        <i class="fa fa-square fa-stack-2x"></i>
+                                                        <i class="fa fa-search-plus fa-stack-1x fa-inverse"></i>
+                                                    </span>
+                                                </a>
+                                                {% if request.user == etkinlik.yönetici %}
+                                                <a href="#" class="table-link danger" data-toggle="modal"
+                                                    data-target="#confirmModal">
+                                                    <span class="fa-stack">
+                                                        <i class="fa fa-square fa-stack-2x"></i>
+                                                        <i class="fa fa-trash-o fa-stack-1x fa-inverse"></i>
+                                                    </span>
+                                                </a>
+                                                {% endif %}
+                                            </form>
+                                        </td>
+                                        <!--end actions td-->
+                                    </tr>
+                                    <!--end tr-->
                                     {% endfor %}
-                                
+                                </tbody>
+                                <!--end tbody-->
+                                <!--Sil Modeli -->
+                                <div class="modal fade" id="silModal" tabindex="-1" role="dialog"
+                                    aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel">Silme Onayı</h5>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Etkinliği silmek istediğinize emin misiniz?</p>
+                                                <ul>
+                                                    <li><small>Silinen etkinlik geri alınamaz</small></li>
+                                                    <li><small>Etkinlikte katılımcı bulunuyorsa etkinlik silinemez.</small></li>
+                                                    <li><small>Etkinlik bitmişse etkinlik silinemez.</small></li>
+                                                  </ul>
+                                                  
+
+                                                
+
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">İptal</button>
+                                                <form method="POST"
+                                                    action="{% url 'etkinlik_sil' slug=etkinlik.slug %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">Sil</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                        <!--Sil Modeli Bitiş -->
+                        <!-- Modal -->
+                        <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog"
+                            aria-labelledby="confirmModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <!-- Start modal title -->
+                                        <h5 class="modal-title" id="confirmModalLabel">Etkinlikten Kullanıcı Atma Onayı
+                                        </h5>
+                                        <!-- End modal title -->
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Start modal body -->
+                                        <p>
+                                            <strong>{{ katilimci.username }}</strong> kullanıcısını etkinlikten atmak
+                                            istediğinize emin misiniz?
+                                        </p>
+                                        <ul>
+                                            <li>
+                                                <small>Etkinlikten attığınız kullanıcıyı tekrar etkinliğe
+                                                    alamazsınız.</small>
+                                            </li>
+                                            <li>
+                                                <small>Etkinlikten atılan kullanıcı etkinliğe tekrar
+                                                    katılabilir.</small>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <!-- Start modal footer -->
+                                        <button type="button" class="btn btn-success"
+                                            data-dismiss="modal">İptal</button>
+                                        <button type="submit" class="btn btn-danger">Etkinlikten At</button>
+                                    </div>
+                                    <!-- End modal footer -->
+                                </div>
                             </div>
-                        {% endif %}
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                        </div>
+                        </form>
+                        <div class="modal fade" id="errorModal" tabindex="-1" role="dialog"
+                            aria-labelledby="errorModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="errorModalLabel">
+                                            <i class="fa-solid fa-circle-info fa-beat-fade fa-2xs"></i>
+                                            <strong>Bilgi</strong>
+                                        </h5>
+                                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        {% if messages %}
+                                        {% for message in messages %}
+                                        <div class="alert alert-{{ message.level_tag }}">
+                                            {% for message in messages %}{{ message }}{% endfor %}
+                                        </div>
+                                        {% endfor %}
+                                        {% endif %}
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Kapat</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    <script>
+                        {% if messages %}
+                        $(document).ready(function () {
+                            $('#errorModal').modal('show');
+                        });
+                        {% endif %}
+                    </script>
+                    </table>
+                    <!--end table-->
                 </div>
             </div>
         </div>
-        
-        <script>
-            {% if messages %}
-                $(document).ready(function() {
-                    $('#errorModal').modal('show');
-                });
-            {% endif %}
-        </script>
-        
-
-<h3>Katılımcılar:</h3>
-<ul>
-    {% for katilimci in katilimcilar %}
-    <p>{{ katilimci.username }}</p>
-  {% empty %}
-    <li>Henüz katılımcı yok.</li>
-  {% endfor %}
-</ul>
+    </div>
+</div>
+<!-- End Col-8 -->
+<div class="col-4">
+    <div class="row d-flex justify-content-center">
+        <div class="card shadow-0 border" style="background-color: #f0f2f5;">
+            <div class="card-body p-4">
+                <form method="POST" action="{% url 'yorum_yap' etkinlik.slug %}">
+                    {% csrf_token %}
+                    <div class="form-outline mb-4">
+                        <input type="text" id="addANote" class="form-control" placeholder="Type comment..." name="yorum"
+                            id yorum />
+                        <label class="form-label" style="cursor: pointer;">
+                            <span>+ Yorum Yap</span>
+                            
+                            <button type="submit" style="display: none;"></button>
+                        </label>
+                    </div>
+                </form>
+                {% for yorum in yorumlar %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        {% if yorum in son_yorumlar %}
+                            <p id="newcomment" class="small mb-0 ml-auto me-0 text-end">Yeni</p>
+                        {% endif %}
+                        {% if yorum.yorum|length > 50 %}
+                            <p style="max-height: 20px;">{{ yorum.yorum|slice:":50" }}</p>
+                            <button class="btn btn-link small" type="button" style="margin-left: -11px" data-toggle="collapse" data-target="#yorumCollapse{{ yorum.id }}" aria-expanded="false" aria-controls="yorumCollapse{{ yorum.id }}">
+                                <small>Devamını Gör</small>
+                            </button>
+                            <div class="collapse" id="yorumCollapse{{ yorum.id }}">
+                                <p>{{ yorum.yorum }}</p>
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        {% for cevap in cevaplar_listesi %}
+                                            {% if cevap.yorum.id == yorum.id %}
+                                                <p>{{ cevap.cevap }}</p>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p>{{ yorum.yorum }}</p>
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    {% for cevap in cevaplar %}
+                                        {% if cevap.yorum.id == yorum.id %}
+                                            <p>{{ cevap.cevap }}</p>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex flex-row align-items-center">
+                                <img src="{{ yorum.yorum_sahibi.profile.profile_img.url }}" alt="avatar" width="25" height="25" />
+                                <p class="small mb-0 ms-2">{{ yorum.yorum_sahibi.profile.username }}</p>
+                            </div>
+                            <div class="d-flex flex-row align-items-center">
+                                {% if request.user == yorum.yorum_sahibi %}
+                                    <form method="POST" action="{% url 'yorum_sil' pk=yorum.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-link text-danger p-0" title="Yorumu Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <button class="btn btn-link small" type="button" data-toggle="modal" data-target="#replyModal{{ yorum.id }}">
+                                    Reply
+                                </button>
+                                <!-- Boşluk -->
+                                <span class="space"></span>
+                                <form method="POST" action="{% url 'yorum_sil' pk=yorum.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link text-danger p-0" title="Yorumu Beğen">
+                                        <i class="fa-solid fa-thumbs-up" style="color: #009dff;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% endfor %}
+                <div class="pagination-container">
+                    <ul class="pagination justify-content-center">
+                        {% if sayfa.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?sayfa={{ sayfa.previous_page_number }}">Önceki</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Önceki</span>
+                        </li>
+                        {% endif %}
+                        {% for numara in sayfa.paginator.page_range %}
+                        {% if numara == sayfa.number %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ numara }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?sayfa={{ numara }}">{{ numara }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        {% if sayfa.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?sayfa={{ sayfa.next_page_number }}">Sonraki</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Sonraki</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

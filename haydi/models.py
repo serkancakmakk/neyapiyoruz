@@ -23,6 +23,7 @@ def user_directory_path(instance, filename):
     # Tam dosya yolu
     return os.path.join(folder, filename)
 
+    
 class Mekan(models.Model):
     adi = models.CharField('Mekan Adı', max_length=20)
     adres = models.CharField(max_length=300)
@@ -42,6 +43,7 @@ class Mekan(models.Model):
 
     def __str__(self):
         return self.adi
+
 class Event(models.Model):
     ad = models.CharField('Etkinlik Adı', max_length=120)
     baslik = models.CharField('Baslik', max_length=50, null=True, blank=True)
@@ -49,13 +51,13 @@ class Event(models.Model):
     saat = models.TimeField('Saat', null=False, blank=False)
     gün = models.DateTimeField('Etkinlik Günü')
     katilimcilar = models.ManyToManyField(User, related_name='katildigi_etkinlikler', blank=True)
-    # katilimci_sayisi = models.PositiveIntegerField(default=0)
+    katilimci_kontrol = models.BooleanField(default=False)
+    kontenjan = models.PositiveIntegerField(default=0,null=True,blank=True)
     mekan = models.ForeignKey(Mekan, blank=True, null=True,related_name='etkinlikler', on_delete=models.CASCADE)
     # Diğer alanlar...
     açiklama = RichTextField()
     yönetici = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='yönetici_event_set')
     silindi = models.BooleanField(default=False)
-    
     def get_katilimcilar(self):
         return self.katilimcilar.all()
     def __str__(self):
@@ -68,12 +70,31 @@ class Event(models.Model):
             slug = slugify(self.baslik)
             random_string = get_random_string(length=4)  # Rastgele bir dize oluştur
             self.slug = f"{slug}-{random_string}"  # Slug'a rastgele dizeyi ekle
+        # if self.katilimci_kontrol:
+        #     self.katilimci_sayisi = self.katilimcilar.count()
         super(Event, self).save(*args, **kwargs)
     
     def günü_gecmis(self):
-        now = datetime.now()
+        now = datetime.time()
         event_datetime = datetime.combine(self.gün, self.saat)
         return event_datetime < now
+class Yorum(models.Model):
+    yorum = models.CharField(max_length=255)
+    yorum_sahibi = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='yorumlar')
+    silindi = models.BooleanField(default=False)
+    def event_ad(self):
+        return self.event.ad
+class YorumCevap(models.Model):
+    cevap = models.CharField(max_length=255,blank=True,null=True)
+    yorum = models.ForeignKey(Yorum, on_delete=models.DO_NOTHING, related_name='cevaplar',null=True,blank=True)
+    cevapsahibi = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    silindi = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.cevap
+    
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     ad = models.CharField(max_length=20)

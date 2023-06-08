@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div class="container">
+  <br/>
+  <div class="row">
+    <br/>
+    {% for etkinlik in etkinlikler %}
+    <div class="col-sm">
+      <div class="card" id="etkinlikcard"style="width: 18rem;">
+        <div class="card-body" style="height: 18rem;">
+          <h5 class="card-title">{{etkinlik.ad}}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">{{etkinlik.saat}}</h6>
+          <p class="card-text">{{ etkinlik.açiklama|safe|truncatechars_html:20}}</p>
+          <a href="{% url 'eventdetail' etkinlik.slug %}" class="card-link"><i class="fa-solid fa-feather"></i> Etkinlik Detay</a>
+          <br/>
+          <br/>
+          <a href="{% url 'yer_detay' etkinlik.mekan.pk %}" class="card-link"><i class="fa-solid fa-shop"></i> Yer Detay</a>
+
+        </div>
+      </div>
+      <br/>
+    </div>
+   
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

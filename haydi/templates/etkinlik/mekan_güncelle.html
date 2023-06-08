@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<form method="POST">
+    {% csrf_token %}
+{{form.as_p}}
+<button type="submit" class="btn btn-primary btn-block col-md-4 mb-3">Güncelle</button>
+</form>
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel"><strong>Bilgi</strong></h5>
+                
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.level_tag }}">
+                        
+                            {% for message in messages %}
+                                {{ message }}
+                            {% endfor %}
+                        
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                <div class="modal-footer">
+                    <a href="{% url 'yer_detay' mekan.pk %}" class="btn btn-warning">Detaya Dön</a>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Güncellenebilir Alanları Gör</button>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function() {
+        {% if messages %}
+            $("#errorModal").modal("show");
+        {% endif %}
+    });
+</script>
+{% endblock content %}

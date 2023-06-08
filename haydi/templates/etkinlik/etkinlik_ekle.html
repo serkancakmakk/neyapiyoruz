@@ -43,6 +43,18 @@
             {{ form.mekan }}
           </div>
           <div class="form-group col-md-4 mb-3">
+            <div class="checkbox-and-input-container">
+              <input id="id_katilimci_kontrol" type="checkbox" name="{{ form.katilimci_kontrol.name }}" class="form-check-input" {% if form.katilimci_kontrol.value %}checked{% endif %}>
+              <label for="id_katilimci_kontrol" class="form-check-label">
+                <span>Katılımcı Kontrolü yap</span>
+              </label>
+              <input id="katilimciAlan" type="number" name="{{ form.kontenjan.name }}" value="{{ form.kontenjan.value }}" class="form-control" placeholder="Kaç kişi katılabilir?" min="0">
+            </div>
+          </div>
+          
+          
+          
+          <div class="form-group col-md-4 mb-3">
             {{ form.gün }}
           </div>
           <div class="form-group col-md-4 mb-3">
@@ -63,7 +75,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="errorModalLabel"><strong>Hata</strong></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -88,7 +100,7 @@
           </div>
         {% endif %}
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
         </div>
       </div>
     </div>
@@ -162,5 +174,29 @@ document.getElementById('sehir-select').addEventListener('change', function() {
     xhr.send();
   });
   </script>
+          
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var katilimciKontrolCheckbox = document.getElementById("id_katilimci_kontrol");
+      var katilimciSayisiInput = document.getElementById("katilimciAlan");
+    
+      // Checkbox durumunu dinle
+      katilimciKontrolCheckbox.addEventListener("change", function() {
+        if (katilimciKontrolCheckbox.checked) {
+          katilimciSayisiInput.style.display = "block";  // Göster
+        } else {
+          katilimciSayisiInput.style.display = "none";  // Gizle
+          katilimciSayisiInput.value = "";  // Boş değer atama
+        }
+      });
+    
+      // Sayfa yüklendiğinde kontrol et
+      if (!katilimciKontrolCheckbox.checked) {
+        katilimciSayisiInput.style.display = "none";  // Gizle
+        katilimciSayisiInput.value = "";  // Boş değer atama
+      }
+    });
+  </script>
+  
   
 {% endblock content %}

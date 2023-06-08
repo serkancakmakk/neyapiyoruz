@@ -1,0 +1,42 @@
+
+.login-container {
+    max-width: 400px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin: 0 auto; /* Yatayda ortalamak için */
+    margin-top: 100px; /* İstediğiniz boşluğa göre ayarlayabilirsiniz */
+}
+
+.lock-icon {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#loginbtn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #39c5ec;
+
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#loginbtn:hover {
+    background-color: #4CAF50;
+}

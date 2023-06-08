@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% for mekan in mekanlar %}
+<div class="card" style="width: 18rem;">
+  <img class="card-img-top" src="..." alt="Card image cap">
+  <div class="card-body">
+    <h5 class="card-title">{{mekan.adi}}</h5>
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <a href="{%url 'yer_detay' mekan.pk %}" class="btn btn-primary">Go somewhere</a>
+    <a href="{%url 'mekan_güncelle' mekan.pk %}" class="btn btn-primary">Güncelle</a>
+    <div class="btn-group dropright">
+      <button type="button" class="btn btn-danger">
+        Danger Zone
+      </button>
+      <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span class="sr-only">Toggle Dropright</span>
+      </button>
+      <div class="dropdown-menu">
+          <a class="dropdown-item" href="#">Mekanı Sil</a>
+          <a class="dropdown-item" href="#">Tüm Etkinlikleri Görmezden Gel</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">Separated link</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

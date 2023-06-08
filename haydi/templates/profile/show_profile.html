@@ -1,15 +1,60 @@
-<h1>Profil Bilgileri</h1>
-<p>Kullanıcı Adı: {{ profile.user.username }}</p>
-<p>E-posta: {{ profile.user.email }}</p>
-<p>Katıldığı Etkinlikler: {{ katildigi_etkinlik_sayisi }}</p>
-<ul>
-  {% for etkinlik in katildigi_etkinlikler %}
-    <li>{{ etkinlik.ad }}</li>
-  {% endfor %}
-</ul>
-<p>Oluşturduğu Etkinlikler: {{ olusturdugu_etkinlik_sayisi }}</p>
-<ul>
-  {% for etkinlik in olusturdugu_etkinlikler %}
-    <li>{{ etkinlik.ad }}</li>
-  {% endfor %}
-</ul>
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="content"> <!-- Start Content -->
+  <div class="card"><!-- Start Card -->
+    <div class="row g-0"><!-- Start row g-0 -->
+      <div class="col-md-4"><!-- Start col-md-4 -->
+        <div class="d-flex align-items-center justify-content-center" style="height: 100%;"><!-- Start d-flex -->
+          <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+        </div><!-- End d-flex -->
+      </div><!-- End col-md-4 -->
+      <div class="col-md-8"><!-- Start col-md-8 -->
+        <div class="card-body"><!-- Start card-body -->
+          <h5 class="card-title">{{ user.profile.ad|title }} {{ user.profile.soyad|title }}</h5>
+          <p class="card-text">@<small>{{user.username}}</small></p>
+          <ul class="list-group list-group-flush">
+            {% if user.profile.telefon != None %}
+            <li class="list-group-item"><i class="mdi mdi-phone font-size-15 align-middle pe-2 text-primary"></i> {{ user.profile.telefon }}</li>
+            {% else %}
+            <li class="list-group-item"><i class="mdi mdi-phone font-size-15 align-middle pe-2 text-primary"></i> Telefon Yok</li>
+            {% endif %}
+            <li class="list-group-item"><i class="mdi mdi-email font-size-15 align-middle pe-2 text-primary"></i> {{ user.profile.email }}</li>
+            <li class="list-group-item"><i class="mdi mdi-account-plus font-size-15 align-middle pe-2 text-primary"> </i><strong>Katıldığı Etkinlikler</strong> <span class="badge badge-info">{{ katildigi_etkinlikler.count }}</span></li>
+            <li class="list-group-item"><i class="mdi mdi-account-edit font-size-15 align-middle pe-2 text-primary"> </i><strong>Oluşturduğu Etkinlikler</strong> <span class="badge badge-info">{{ olusturdugu_etkinlikler.count }}</span></li>
+          </ul>
+          <div class="d-grid gap-2 mt-4"><!-- Start d-grid-gap -->
+            <a href="{% url 'update_profile' %}" class="btn btn-primary">Güncelle</a>
+            <button type="button" class="btn btn-primary">Contact</button>
+          </div><!-- End d-grid-gap -->
+        </div><!-- End card-body -->
+      </div><!-- End col-md-8 -->
+    </div><!-- End row g-0 -->
+  </div><!-- End Card -->
+</div><!-- End Content -->
+<br/>
+<h1>
+  <center> 
+    Son Etkinlikleri
+  </center>
+</h1>
+<div class="row">
+  <br/>
+  <div class="row justify-content-center">
+    {% for etkinlik in son_etkinliklerim %}
+    <div class="col-lg-6">
+      <div class="card" style="width: 18rem;">
+        <div class="card-body" style="height: 18rem;">
+          <h5 class="card-title">{{ etkinlik.ad }}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">{{ etkinlik.saat }}</h6>
+          <p class="card-text">{{ etkinlik.açiklama|safe|truncatechars_html:20 }}</p>
+          <a href="{% url 'eventdetail' etkinlik.slug %}" class="card-link"><i class="fa-solid fa-feather"></i> Etkinlik Detay</a>
+          <a href="{% url 'yer_detay' etkinlik.mekan.pk %}" class="card-link"><i class="fa-solid fa-shop"></i> Yer Detay</a>
+        </div>
+      </div>
+      <br>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

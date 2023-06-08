@@ -3,11 +3,11 @@ import time
 from django.shortcuts import redirect, render
 import locale
 import calendar
-from .forms import ProfileUpdateForm, RegistrationForm
+from .forms import CevapForm, EtkinlikUpdateForm, MekanUpdateForm, ProfileUpdateForm, RegistrationForm, YorumForm
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from calendar import HTMLCalendar
-from datetime import date, datetime
+from datetime import date, datetime,timedelta
 from django.urls import reverse
 from .forms import EtkinlikForm, MekanForm
 from django.http import HttpResponse, HttpResponseRedirect
@@ -16,11 +16,13 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from cities_light.models import City,Region,SubRegion
 from django.template.loader import render_to_string
-from .models import Mekan,Event, Profile
+from .models import Mekan,Event, Profile, Yorum, YorumCevap
 from .forms import MekanForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator, Page
+
 from django.contrib.auth.decorators import login_required
 
 def get_ilceler(request, sehir_id):
@@ -28,29 +30,31 @@ def get_ilceler(request, sehir_id):
     return JsonResponse(list(ilceler), safe=False)
 # Create your views here.
 @login_required 
-def mekanekle(request,year=None, month=None):
+def mekanekle(request, year=None, month=None):
     if year is None:
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
+    
     submitted = False
-    if request.method =="POST":
+    
+    if request.method == "POST":
         form = MekanForm(request.POST)
         if form.is_valid():
-            yer = form.save(commit=False)
+            mekan = form.save(commit=False)
             if request.user.is_authenticated:
-                yer.sahip = request.user.username
-                yer.save()
-                submitted = True
-                return HttpResponseRedirect(reverse('mekanekle') + '?submitted=True')
+                mekan.olusturan = request.user
+            mekan.save()
+            submitted = True
+            return HttpResponseRedirect(reverse('mekanekle') + '?submitted=True')
     else:
-        form = MekanForm()  # Bu satır else bloğuna taşındı
-        print(form.errors)  # Hata mesajlarını göstermek için print ekledim
-        
+        form = MekanForm()
+    
     if 'submitted' in request.GET:
-        submitted= True
+        submitted = True
+    
     data = create_calendar(year, month)
-    return render(request,'yer_ekle.html',{'form':form,**data,'submitted':submitted,'errors': form.errors})
+    return render(request, 'yer_ekle.html', {'form': form, **data, 'submitted': submitted})
 
 
     
@@ -134,18 +138,35 @@ def eventdetail(request, slug, year=None, month=None):
         year = datetime.now().year
     if month is None:
         user = request.user
+        form = YorumForm()
+        cevapform = CevapForm()
+        cevaplar_listesi = YorumCevap.objects.select_related('cevapsahibi').filter(yorum__event__slug=slug)
+        profile = request.user.profile
         month = datetime.now().strftime('%B')
         data = create_calendar(year, month)
         etkinlik = get_object_or_404(Event, slug=slug)
+        yorumlar = etkinlik.yorumlar.filter(silindi=False).order_by('-id')
+        sayfa_sayisi = 4  # Her sayfada gösterilecek yorum sayısı
+        paginatör = Paginator(yorumlar, sayfa_sayisi)
+        sayfa_numarasi = request.GET.get('sayfa')  # URL parametresinden sayfa numarasını alın
+        sayfa = paginatör.get_page(sayfa_numarasi)
         katilimcilar = etkinlik.katilimcilar.all()
-    if user.is_authenticated: #login decarotor yerine kullanıcının giriş yapıp yapmadığını kendim kontrol ettim
-        if etkinlik.silindi== True:
-            return render(request, 'etkinlik/etkinlik_silindi.html', {'etkinlik': etkinlik,**data})
+        son_yorumlar = yorumlar.order_by('-id')[:2]
 
+        if user.is_authenticated:
+            if etkinlik.silindi:
+                return render(request, 'etkinlik/etkinlik_silindi.html', {'etkinlik': etkinlik, **data})
+            else:
+                return render(request, 'etkinlik/eventdetail.html', {'etkinlik': etkinlik, 'katilimcilar': katilimcilar,
+                                                                     'profile': profile, 'form': form,
+                                                                     'yorumlar': sayfa, 'sayfa': sayfa, **data,
+                                                                     'son_yorumlar': son_yorumlar,
+                                                                     'cevapform': cevapform,
+                                                                     'cevaplar_listesi': cevaplar_listesi})
         else:
-            return render(request, 'etkinlik/eventdetail.html', {'etkinlik': etkinlik, 'katilimcilar': katilimcilar, **data})
-    else:
-        return redirect('login')
+            return redirect('login')
+
+
 
     
 
@@ -197,41 +218,67 @@ def arama_sonuclari(request, year=None, month=None):
         return render(request, 'arama_sonuclari.html', {**data})
 def etkinlik_sil(request, slug):
     etkinlik = get_object_or_404(Event, slug=slug)
-    
+    katilimcilar = etkinlik.katilimcilar.all()
+    now = datetime.now()
+    event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
     if request.method == "POST":
-        if etkinlik.yönetici == request.user:
-            etkinlik.silindi = True
-            etkinlik.save()
-            messages.info(request, "Etkinlik Başarıyla Silindi")
-            return redirect('home')
-            
+        if event_datetime <= now:
+                messages.info(request, "Etkinlik geçtiği için silemezsiniz")
+                return redirect('eventdetail',slug=slug)
+        if katilimcilar.exists():
+            # Etkinlikte katılımcılar var, silinemez
+            messages.info(request, "Etkinlikte katılımcılar bulunuyor. Bu etkinlik silinemez.")
         else:
-            messages.error(request, "Bu etkinliği silme yetkiniz yok.")
-    return redirect('eventdetail', slug=slug)   
+                if request.user == etkinlik.yönetici:
+                # Kullanıcı etkinlik yöneticisi ise etkinliği sil
+                    etkinlik.silindi = True
+                    etkinlik.save()
+                    messages.info(request, "Etkinlik başarıyla silindi")
+                    return redirect('home')
+                else:
+                    # Kullanıcı etkinlik yöneticisi değil, silme yetkisi yok
+                    messages.error(request, "Bu etkinliği silme yetkiniz yok.")
+    else:
+        # Geçersiz istek yöntemi
+        messages.error(request, "Geçersiz istek")
+
+    return redirect('eventdetail', slug=slug)
+
+
 @login_required        
-def etkinlik_ekle(request,year=None, month=None):
+
+@login_required  # Kullanıcının oturum açmış olması gerektiğini kontrol etmek için kullanabilirsiniz
+def etkinlik_ekle(request, year=None, month=None):
     if year is None:
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
-    if request.method =="POST":
+    
+    if request.method == "POST":
         form = EtkinlikForm(request.POST)
         if form.is_valid():
-            etkinlik = form.save(commit=False)  # Nesneyi kaydet, ancak veritabanına henüz gönderme
-            etkinlik.yönetici = request.user  # Yöneticiyi ayarla
-            if etkinlik.gün.date() < date.today(): # Günü kontrol et
+            etkinlik = form.save(commit=False)
+            etkinlik.yönetici = request.user
+            
+            if etkinlik.gün.date() < date.today():
                 form.add_error('gün', 'Geçmiş tarihe etkinlik ekleyemezsiniz.')
             else:
-                etkinlik.save()
-                slug = etkinlik.slug 
-                request.user.profile.olusturdugu_etkinlikler.add(etkinlik)  # Kullanıcının profiline etkinliği ekle
-                return redirect('eventdetail', slug=slug)
+                now = datetime.now().time()
+                if etkinlik.gün.date() == date.today() and etkinlik.saat < now:
+                    form.add_error('saat', 'Geçmiş saate etkinlik ekleyemezsiniz.')
+                else:
+                    etkinlik.save()
+                    form.save_m2m()  # Many-to-many ilişkileri kaydet
+                    slug = etkinlik.slug
+                    request.user.profile.olusturdugu_etkinlikler.add(etkinlik)  # Kullanıcının oluşturduğu etkinliği ekleyin
+                    return redirect('eventdetail', slug=slug)
     else:
-        form = EtkinlikForm()  # Bu satır else bloğuna taşındı
-        print(form.errors)  # Hata mesajlarını göstermek için print ekledim
-        
+        form = EtkinlikForm()
+    
     data = create_calendar(year, month)
-    return render(request,'etkinlik/etkinlik_ekle.html',{'form':form,**data,'errors': form.errors})
+    return render(request, 'etkinlik/etkinlik_ekle.html', {'form': form, **data})
+
+
 
 def get_mekanlar(request, ilce_id):
     mekanlar = Mekan.objects.filter(onayli=True,ilce_id=ilce_id).values('id', 'adi')
@@ -243,14 +290,19 @@ def register(request,year=None,month=None):
         month = datetime.now().strftime('%B')
 
     data = create_calendar(year, month)
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')  # Kullanıcı başarıyla kaydedildikten sonra giriş sayfasına yönlendirilebilirsiniz
+    user = request.user
+    if user.is_authenticated:
+        logout(request)
+        return redirect('register')
     else:
-        form = RegistrationForm()
-    return render(request, 'register.html', {'form': form, **data})
+        if request.method == 'POST':
+            form = RegistrationForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('login')  # Kullanıcı başarıyla kaydedildikten sonra giriş sayfasına yönlendirilebilirsiniz
+        else:
+            form = RegistrationForm()
+        return render(request, 'register.html', {'form': form, **data})
 
 
 from django.contrib.auth import update_session_auth_hash
@@ -271,47 +323,74 @@ def update_profile(request, year=None, month=None):
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, request.FILES, instance=event_user)
         password_form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid() and password_form.is_valid():
+        if form.is_valid():
             profile = form.save(commit=False)
             if not profile.profile_img:  # Eğer resim alanı boş bırakıldıysa
-             profile.profile_img = event_user.profile_img  # Mevcut profil resmini koru
-        user = request.user  # user değişkenini tanımla
-        profile.user = user
-        profile.save()
-        update_session_auth_hash(request, user)
-        return redirect('my_profile')
+                profile.profile_img = event_user.profile_img  # Mevcut profil resmini koru
+            user = request.user  # user değişkenini tanımla
+            profile.user = user
+            profile.save()
+
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+
+            return redirect('my_profile')
     else:
-            form = ProfileUpdateForm(instance=event_user)
-            password_form = PasswordChangeForm(request.user)
+        form = ProfileUpdateForm(instance=event_user)
+        password_form = PasswordChangeForm(request.user)
 
     return render(request, 'profile/profili_güncelle.html', {'form': form, 'password_form': password_form, **data})
+
+
 
 def katilimci_ol(request, slug):
     etkinlik = get_object_or_404(Event, slug=slug)
     katilimcilar = etkinlik.katilimcilar.all()
-    katilimci_sayisi = katilimcilar.count()
     now = datetime.now()
+    kontenjan = etkinlik.kontenjan
     event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
-    # if katilimci_sayisi == -1:
-    #     messages.error(request, "Katilimci Sayisi Doldu")
-    #     return redirect('eventdetail', slug=slug)
-    # else:
+    son_katilma_saati = event_datetime - timedelta(hours=1)
     if etkinlik.yönetici == request.user:
-            messages.error(request, "Etkinlik yöneticisi sizsiniz")
-            
+        messages.error(request, "Etkinlik yöneticisi sizsiniz")
+        print('Yönetici Alanı Çalıştır')
     else:
-            if event_datetime >= now:  # Etkinlik henüz gerçekleşmemişse
+        if kontenjan == 0:
+            messages.info(request, "Etkinlik Daha Fazla Katılımcı Kabul Etmiyor")
+            print('Doğru Çalışıyor Gibi')
+            return redirect('eventdetail', slug=slug)
+        
+        if event_datetime >= now:  # Etkinlik henüz gerçekleşmemişse
+            katildigi_etkinlikler = request.user.profile.katildigi_etkinlikler.filter(gün=etkinlik.gün, saat=etkinlik.saat) # Katıldığı etkinlikleri giriş yapan kullanıcının etkinlikleri ile gün ve saat olarak filtreledim.
+            if katildigi_etkinlikler.exists():
+                messages.error(request, "Aynı saat ve günde zaten bir etkinliğe katıldınız. Başka bir etkinliğe katılamazsınız.")
+                print('Doğru Çalışıyor Gibi')
+                return redirect('eventdetail', slug=slug)
+            
+            if son_katilma_saati > now:
+                
                 etkinlik.katilimcilar.add(request.user)  # Etkinlik nesnesine kullanıcıyı ekle
                 request.user.profile.katildigi_etkinlikler.add(etkinlik)  # Kullanıcının profiline etkinliği ekle
+                etkinlik.kontenjan -= 1
+                etkinlik.save()
+                print('Herhangi bir yere takılmadı, eklendi')
             else:
-                messages.error(request, "Etkinlik günü geçtiği için bu etkinliğe katılmanız mümkün değil!")
+                messages.info(request, "Etkinlik saatine 1 saatten az bir süre süre kaldığı için bu etkinliğe katılmanız mümkün değil!")
+                print('Etkinlik Saatine 1 saatten fazla bir süre kalmadığı yer çalıştı.')
+        else:
+            messages.error(request, "Etkinlik günü geçtiği için bu etkinliğe katılmanız mümkün değil!")
+            print('Etkinlik Gününün Geçtiği yer çalıştı.')
+
     return redirect('eventdetail', slug=slug)
+
+
+
 
 
 
 def katilmayi_birak(request, slug):
     etkinlik = get_object_or_404(Event, slug=slug)
-    
+    kontenjan = etkinlik.kontenjan
     now = datetime.now()
     event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
     if etkinlik.yönetici == request.user:
@@ -321,6 +400,8 @@ def katilmayi_birak(request, slug):
         if event_datetime >= now:  # Etkinlik henüz gerçekleşmemişse
             etkinlik.katilimcilar.remove(request.user)  # Etkinlik nesnesinden kullanıcıyı kaldır
             request.user.profile.katildigi_etkinlikler.remove(etkinlik)  # Kullanıcının profiline etkinliği kaldır
+            etkinlik.kontenjan += 1
+            etkinlik.save()
         else:
             messages.error(request, "Katıldığınız etkinliğin günü geçtiği için bu etkinlikten çıkamazsınız")
     return redirect('eventdetail', slug=slug)
@@ -332,29 +413,29 @@ def show_profile(request, username, year=None, month=None):
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
-    try:
-        data = create_calendar(year, month)
-        user = User.objects.get(username=username)
-        profile = Profile.objects.get(user=user)
-        katildigi_etkinlikler = profile.katildigi_etkinlikler.all()
-        katildigi_etkinlik_sayisi = katildigi_etkinlikler.count()
-        olusturdugu_etkinlikler = profile.olusturdugu_etkinlikler.all()
-        olusturdugu_etkinlik_sayisi = olusturdugu_etkinlikler.count()
-        context = {
-            'user': user,
-            'profile': profile,
-            'katildigi_etkinlikler': katildigi_etkinlikler,
-            'katildigi_etkinlik_sayisi': katildigi_etkinlik_sayisi,
-            'olusturdugu_etkinlikler': olusturdugu_etkinlikler,
-            'olusturdugu_etkinlik_sayisi': olusturdugu_etkinlik_sayisi
-        }
-    except User.DoesNotExist:
-        messages.warning(request, "Kullanıcı Bulunamadı.")
-        return redirect('home')
-    except Profile.DoesNotExist:
-        return render(request, 'profile/profile_not_found.html')
+
+    data = create_calendar(year, month)
+    user = User.objects.get(username=username)
+    katildigi_etkinlikler = user.profile.katildigi_etkinlikler.all()
+    katildigi_etkinlik_sayisi = katildigi_etkinlikler.count()
+    olusturdugu_etkinlikler = user.profile.olusturdugu_etkinlikler.all()
+    olusturdugu_etkinlik_sayisi = olusturdugu_etkinlikler.count()
+    son_etkinlikler = olusturdugu_etkinlikler.order_by('-id')
+    son_etkinliklerim = son_etkinlikler[:2]
+
+    context = {
+        'user': user,
+        'katildigi_etkinlikler': katildigi_etkinlikler,
+        'katildigi_etkinlik_sayisi': katildigi_etkinlik_sayisi,
+        'olusturdugu_etkinlikler': olusturdugu_etkinlikler,
+        'olusturdugu_etkinlik_sayisi': olusturdugu_etkinlik_sayisi,
+        'son_etkinliklerim': son_etkinliklerim
+    }
+
+    context.update(data)  # data sözlüğünü context sözlüğüne güncelle
 
     return render(request, 'profile/show_profile.html', context)
+
 
 
 
@@ -367,19 +448,25 @@ def login_view(request,year=None,month=None):
     if month is None:
         month = datetime.now().strftime('%B')
         data = create_calendar(year, month)
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
+    user = request.user
+    if user.is_authenticated: #Kullanıcı giriş yapmış ve tekrar login olmaya çalışırsa logout edilir.
+        
+        return redirect('logout')
+    else:
+        if request.method == 'POST':
+            
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(request, username=username, password=password)
             if user is not None:
-                if hasattr(user, 'profile'):
-                    return redirect('home')
-                else:
-                    return redirect('update_profile')
-        else:
-            messages.error(request, 'Kullanıcı adı veya şifre yanlış.')
+                login(request, user)
+                if user is not None:
+                    if hasattr(user, 'profile'):
+                        return redirect('home')
+                    else:
+                        return redirect('update_profile')
+            else:
+                messages.error(request, 'Kullanıcı adı veya şifre yanlış.')
     
     return render(request, 'login.html', data)
 def my_profile(request, year=None, month=None):
@@ -393,23 +480,256 @@ def my_profile(request, year=None, month=None):
     katildigi_etkinlik_sayisi = katildigi_etkinlikler.count()
     olusturdugu_etkinlikler = user.profile.olusturdugu_etkinlikler.all()
     olusturdugu_etkinlik_sayisi = olusturdugu_etkinlikler.count()
+    son_etkinlikler = olusturdugu_etkinlikler.order_by('-id')
+    son_etkinliklerim = son_etkinlikler[:2]
     context = {
         'user': user,
         'katildigi_etkinlikler': katildigi_etkinlikler,
         'katildigi_etkinlik_sayisi': katildigi_etkinlik_sayisi,
         'olusturdugu_etkinlikler': olusturdugu_etkinlikler,
         'olusturdugu_etkinlik_sayisi': olusturdugu_etkinlik_sayisi,
+        'son_etkinliklerim': son_etkinliklerim
     }
     context.update(data)  # data sözlüğünü context sözlüğüne güncelle
     return render(request, 'profile/my_profile.html', context)
 
 
 from django.contrib import messages
+@login_required
 def custom_logout(request):
     user = request.user
     if user.is_authenticated:
         logout(request)
         messages.info(request, "Çıkış Yapıldı !")
-        return redirect("home")
+        return redirect("login")
     else:
         return redirect("home")
+
+from django.utils import timezone
+
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Event
+
+from datetime import timedelta
+
+from datetime import timedelta
+
+from datetime import timedelta
+
+def etkinlik_düzenle(request, slug, year=None, month=None):
+    if year is None:
+        year = datetime.now().year
+    if month is None:
+        month = datetime.now().strftime('%B')
+    
+    etkinlik = get_object_or_404(Event, slug=slug)
+    kontenjan  = etkinlik.kontenjan
+    now = datetime.now()
+    user = request.user
+    event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
+    
+    if etkinlik.yönetici != user:
+        messages.error(request, "Etkinlik yöneticisi siz değilsiniz.")
+        return redirect('home')
+
+
+    if event_datetime <= now:
+        messages.error(request, "Etkinlik tarihi geçmiş olduğu için düzenleyemezsiniz.")
+        return redirect('eventdetail', slug=slug)
+
+    son_düzenleme_saati = event_datetime - timedelta(hours=1)
+
+    if son_düzenleme_saati <= now:
+        print(son_düzenleme_saati)
+        print(event_datetime)
+        messages.error(request, "Etkinliğe 1 saatten az bir süre kaldığı için bu etkinliği düzenleyemezsiniz.")
+        return redirect('eventdetail', slug=slug)
+    if request.method == "POST":
+        form = EtkinlikUpdateForm(request.POST, instance=etkinlik)
+        if form.is_valid():
+            if form.cleaned_data['gün'].date() < date.today():
+                form.add_error('gün', 'Geçmiş tarihe etkinlik ekleyemezsiniz.')
+            else:
+                etkinlik = form.save(commit=False)
+                etkinlik.slug = slug
+
+                if etkinlik.katilimci_kontrol:
+                    etkinlik.kontenjan = form.cleaned_data['kontenjan']
+                    
+                else:
+                    etkinlik.kontenjan = 0
+
+                etkinlik.save()
+                return redirect('eventdetail', slug=slug)
+
+
+    else:
+        form = EtkinlikUpdateForm(instance=etkinlik)
+    print(event_datetime)
+    print(son_düzenleme_saati)
+    data = create_calendar(year, month)
+    return render(request, 'etkinlik/etkinlik_düzenle.html', {'form': form, **data})
+
+
+
+
+
+
+
+
+def mekan_guncelle(request, mekan_id,year=None,month=None):
+    if year is None:
+        year = datetime.now().year
+    if month is None:
+        month = datetime.now().strftime('%B')
+    data = create_calendar(year, month)
+    mekan = get_object_or_404(Mekan, id=mekan_id)
+    user = request.user
+    
+    if user != mekan.olusturan:
+        messages.warning(request, 'Bu Yer Size Ait Değil')
+        return redirect('yer_listesi')
+    else:
+        if request.method == 'POST':
+            form = MekanUpdateForm(request.POST, instance=mekan)
+            if form.is_valid():
+                form.save()
+                return redirect('yer_detay', mekan.pk)
+        else:
+            form = MekanUpdateForm(instance=mekan)
+            messages.info(request,'Yerlerde Şehir ve İlçe Güncellenmesi Yapılamıyor.Mekanı Silip Tekrar Başvuru Yapmanız Gerekir.')
+            print('Hata Geliyor Htmlde yok')
+        return render(request, 'etkinlik/mekan_güncelle.html', {'form': form, 'mekan': mekan,**data})
+    
+def sahip_oldugunuz_mekanlar(request, year=None, month=None):
+    if year is None:
+        year = datetime.now().year
+    if month is None:
+        month = datetime.now().strftime('%B')
+    
+    user = request.user
+    mekanlar = Mekan.objects.filter(olusturan=user)
+    
+    data = create_calendar(year, month)
+    
+    return render(request, 'sahip_mekanlar.html', {'mekanlar': mekanlar, **data})
+
+def etkinliklerim(request, year=None, month=None):
+    if year is None:
+        year = datetime.now().year
+    if month is None:
+        month = datetime.now().strftime('%B')
+    
+    user = request.user
+    etkinlikler = Event.objects.filter(yönetici=user)
+    
+    data = create_calendar(year, month)
+    
+    return render(request, 'etkinliklerim.html', {'etkinlikler': etkinlikler, **data})
+
+from django.http import Http404
+
+def etkinlikten_at(request, slug, pk):
+    etkinlik = get_object_or_404(Event, slug=slug)
+    katilimci = get_object_or_404(User, pk=pk)
+    event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
+    now = datetime.now()
+    son_atma_tarihi = event_datetime - timedelta(hours=1)
+    if etkinlik.yönetici == request.user:
+        
+        if event_datetime <= now:
+                print(event_datetime)
+                print(son_atma_tarihi)
+                messages.success(request, "Geçmiş bir etkinlikte katılımıcıyı düzenleyemezsiniz.")
+                return redirect('eventdetail', slug=slug)
+        else:
+            if son_atma_tarihi <= now:
+                print(son_atma_tarihi)
+                print(event_datetime)
+                messages.error(request, "Etkinliğe 1 saatten az bir süre kaldığı için bu etkinliği düzenleyemezsiniz.")
+                return redirect('eventdetail', slug=slug)
+            else:
+                    if request.method == "POST":
+                        # Etkinlikten kullanıcıyı çıkar
+                        etkinlik.katilimcilar.remove(katilimci)
+                        katilimci.profile.katildigi_etkinlikler.remove(etkinlik)
+                        messages.success(request, 'Kullanıcı etkinlikten çıkarıldı.')
+                        etkinlik.kontenjan += 1
+                        etkinlik.save()
+                        return redirect('eventdetail', slug=slug)
+                    else:
+                        raise Http404("Geçersiz istek yöntemi.")
+    else:
+                messages.error(request, 'Bu etkinlik size ait değil.')
+                return redirect('eventdetail', slug=slug)
+def yorum_yap(request, slug):
+    etkinlik = get_object_or_404(Event, slug=slug)
+    user = request.user
+    slug = etkinlik.slug
+    event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
+    now = datetime.now()
+
+
+    if request.method == 'POST':
+        if user.is_authenticated:
+            if etkinlik.katilimcilar.filter(id=user.id).exists():
+                form = YorumForm(request.POST)
+                if form.is_valid():
+                    yorum = form.save(commit=False)
+                    yorum.event = etkinlik
+                    yorum.yorum_sahibi = user
+                    yorum.save()
+                    return redirect('eventdetail', slug=slug)
+            else:
+                messages.info(request, 'Katılımcı Olmadığınız Etkinliğe Yorum Yapamazsınız')
+                return redirect('eventdetail', slug=slug)
+    else:
+        messages.info(request, 'Yorum Gönderildi')
+    return redirect('eventdetail', slug=slug)
+
+def yorum_sil(request, pk):
+    yorum = get_object_or_404(Yorum, pk=pk)
+    user = request.user
+    etkinlik_yorum = yorum.event
+    slug = etkinlik_yorum.slug
+
+    if request.method == 'POST':
+        if user.is_authenticated:
+            if yorum.yorum_sahibi == user:
+                yorum.silindi = True
+                yorum.save()
+                print('buraya geldi')
+                messages.success(request, 'Yorum başarıyla silindi.')
+            else:
+                messages.warning(request, 'Yorum senin mi ulan dallama')
+                print('takıldı')
+        else:
+            messages.warning(request, 'Yorum yapabilmek için giriş yapmalısınız.')
+            print('burada')
+        return redirect('eventdetail', slug=slug)
+
+    return redirect('eventdetail', slug=slug)
+
+def cevap_ver(request, pk, slug):
+    yorum = get_object_or_404(Yorum, pk=pk)
+    etkinlik = get_object_or_404(Event, slug=slug)
+    slug = etkinlik.slug
+    user = request.user
+
+    if request.method == 'POST':
+        if user.is_authenticated:
+            form = CevapForm(request.POST)
+            if form.is_valid():
+                cevap = form.save(commit=False)
+                cevap.yorum = yorum  # Değişiklik burada yapıldı
+                cevap.cevapsahibi = user
+                cevap.save()
+                messages.success(request, 'Cevap gönderildi')
+            else:
+                print(form.errors)
+                messages.error(request, 'Geçersiz bir cevap gönderdiniz')
+        else:
+            messages.info(request, 'Cevap vermek için giriş yapmalısınız')
+    return redirect('eventdetail', slug=slug)

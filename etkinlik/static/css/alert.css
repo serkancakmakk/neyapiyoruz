@@ -1,0 +1,20 @@
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    color: #856404;
+  }
+  
+  .alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+  .alert-error {
+    background-color: #cb404e; /* Daha koyu bir arka plan rengi */
+    border-color: #6c1c21; /* Daha koyu bir kenarlık rengi */
+    color: #fff; /* Daha koyu bir metin rengi */
+  }
+  .alert-info {
+    color: #059;
+    background-color: #BEF;
+  }

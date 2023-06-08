@@ -1,117 +1,225 @@
-
 .hm-gradient {
-        background-image: linear-gradient(to top, #f3e7e9 0%, #e3eeff 99%, #e3eeff 100%);
-    }
+    background-image: linear-gradient(to top, #f3e7e9 0%, #e3eeff 99%, #e3eeff 100%);
+}
+
 .navbar .dropdown-menu a:hover {
-        color: #616161 !important;
-    }
+    color: #616161 !important;
+    
+}
+
 .darken-grey-text {
-        color: #2E2E2E;
-    }
-    .navbar {
-        background-color: #17a2b8;
-    }
-    .navbar-brand {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-      }
+    color: #2E2E2E;
+}
+.nav-link.active {
+    position: relative;
+  }
+  
+  .nav-link.active::before {
+    content: "...";
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    color: #000;
+  }
+.navbar {
+    background-color: #17a2b8;
+}
 
-      .today {
-        background-color: #ffcc00;
-        border-radius: 50%;
-        width: 2em;
-        height: 2em;
-        line-height: 2em;
-        text-align: center;
-        vertical-align: middle;
-    }
-    @import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@700&family=Poppins:wght@600&display=swap');
+.navbar-brand {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
 
-    * {
-        box-sizing: border-box
-    }
-    
-    body {
-        background-color: #d9ecf2;
-        font-family: 'Poppins', sans-serif;
-        color: #666
-    }
-    
-    .h2 {
-        color: #444;
-        font-family: 'PT Sans', sans-serif
-    }
-    
-    thead {
-        font-family: 'Poppins', sans-serif;
-        font-weight: bolder;
-        font-size: 20px;
-        color: #666
-    }
-    
-    img {
-        width: 40px;
-        height: 40px
-    }
-    
-    .name {
-        display: inline-block
-    }
-    
-    .bg-blue {
-        background-color: #EBF5FB;
-        border-radius: 8px
-    }
-    
-    .fa-check,
-    .fa-minus {
-        color: blue
-    }
-    
-    .bg-blue:hover {
+.today {
+    background-color: #ffcc00;
+    border-radius: 50%;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    text-align: center;
+    vertical-align: middle;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@700&family=Poppins:wght@600&display=swap');
+
+* {
+    box-sizing: border-box
+}
+
+body {
+    background-color: #d9ecf2;
+    font-family: 'Poppins', sans-serif;
+    color: #666
+}
+
+.h2 {
+    color: #444;
+    font-family: 'PT Sans', sans-serif
+}
+
+thead {
+    font-family: 'Poppins', sans-serif;
+    font-weight: bolder;
+    font-size: 20px;
+    color: #666
+}
+
+img {
+    width: 40px;
+    height: 40px
+}
+
+.name {
+    display: inline-block
+}
+
+.bg-blue {
+    background-color: #EBF5FB;
+    border-radius: 8px
+}
+
+.fa-check,
+.fa-minus {
+    color: blue
+}
+
+/* .bg-blue:hover {
         background-color: #3e64ff;
         color: #eee;
         cursor: pointer
-    }
-    
-    .bg-blue:hover .fa-check,
+    } */
+
+/* .bg-blue:hover .fa-check,
     .bg-blue:hover .fa-minus {
         background-color: #3e64ff;
         color: #eee
     }
-    
-    .table thead th,
-    .table td {
-        border: none
+     */
+.table thead th,
+.table td {
+    border: none
+}
+
+.table tbody td:first-child {
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px
+}
+
+.table tbody td:last-child {
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px
+}
+
+#spacing-row {
+    height: 10px
+}
+
+@media(max-width:575px) {
+    .container {
+        width: 125%;
+        padding: 20px 10px
     }
-    
-    .table tbody td:first-child {
-        border-bottom-left-radius: 10px;
-        border-top-left-radius: 10px
-    }
-    
-    .table tbody td:last-child {
-        border-bottom-right-radius: 10px;
-        border-top-right-radius: 10px
-    }
-    
-    #spacing-row {
-        height: 10px
-    }
-    
-    @media(max-width:575px) {
-        .container {
-            width: 125%;
-            padding: 20px 10px
-        }
-    }
+}
 
 .current-day {
-        border: 2px solid red;
-        border-radius: 50%;
-        display: inline-block;
-    }
+    border: 2px solid red;
+    border-radius: 50%;
+    display: inline-block;
+}
+/* 
 #yeretkinlik:hover {
-        transform: scale(1.2);
-      }
+    transform: scale(1.2);
+} */
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#dangerzone {
+    margin-left: auto;
+}
+
+#dangerzone .fa-cog:hover {
+    color: red;
+    /* İstediğiniz kırmızı rengi kullanın */
+}
+
+#dangerzone .dropdown-item:hover {
+    background-color: rgb(20, 154, 233);
+    /* İstediğiniz hover rengini kullanın */
+    color: white;
+    /* Yazı rengini beyaz olarak ayarlayabilirsiniz veya istediğiniz renk değerini kullanın */
+}
+
+#dangerzone .dropdown-item.danger:hover {
+    background-color: red;
+    /* İstediğiniz hover rengini kullanın */
+    color: white;
+    /* Yazı rengini beyaz olarak ayarlayabilirsiniz veya istediğiniz renk değerini kullanın */
+}
+
+.checkbox-and-input-container {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-and-input-container label {
+    margin-right: 10px;
+}
+
+#kontenjan {
+    float: left;
+    margin-left: auto;
+    /* İstediğiniz boşluk miktarını ayarlayın */
+}
+
+.space {
+    margin-left: 10px;
+    /* İstenilen boşluk değerini burada ayarlayabilirsiniz */
+}
+
+#newcomment {
+    color: green;
+    text-size-adjust: 10;
+
+}
+#etkinlikcard{
+    background-color: #11e7e3;
+}
+
+#etkinlikcard i{
+    color: #000000;
+}
+#etkinlikcard a{
+    color: #000000;
+}
+
+/* 
+.card-link {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: transparent;
+    color: #000;
+    text-decoration: none;
+    border: 2px solid ;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    margin-right: 10px;
+    border-top: 2px solid rgb(74, 30, 30);
+    border-bottom: 2px solid blue;
+    border-left: 2px solid rgb(255, 0, 132);
+    border-right: 2px solid rgb(255, 0, 170);
+  } */
+  
+
+  .card-link:hover {
+    
+    background-color: #f1f1f1;
+    border-right: none;
+
+  }
