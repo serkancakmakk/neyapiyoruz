@@ -22,10 +22,10 @@ CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cstqf^z!#b#ulbu*jddwv&ps2$i#58a((+&l282tz!6#i*htqn'
+# SECRET_KEY = 'django-insecure-cstqf^z!#b#ulbu*jddwv&ps2$i#58a((+&l282tz!6#i*htqn'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['serkancakmak.pythonanywhere.com']
 
