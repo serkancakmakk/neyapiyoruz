@@ -36,6 +36,13 @@ class Mekan(models.Model):
     olusturan = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     onayli = models.BooleanField('Onaylı', default=False)
     onay_tarihi = models.DateTimeField('Onay Tarihi', null=True, blank=True)
+    silindi = models.BooleanField('Silindi',default='False')
+    acik = models.BooleanField('Etkinliğe Açık',default=False)
+    olumlu_oy = models.PositiveIntegerField(default=0)
+    olumlu_oy_kullananlar = models.ManyToManyField(User, related_name='olumlu_oylar',null=True,blank=True)
+    olumsuz_oy = models.PositiveIntegerField(default=0)
+    olumsuz_oy_kullananlar = models.ManyToManyField(User, related_name='olumsuz_oylar',null=True,blank=True)
+
     def save(self, *args, **kwargs):
         if self.onayli and not self.onay_tarihi:
             self.onay_tarihi = timezone.now()
@@ -75,7 +82,7 @@ class Event(models.Model):
         super(Event, self).save(*args, **kwargs)
     
     def günü_gecmis(self):
-        now = datetime.time()
+        now = datetime.now()
         event_datetime = datetime.combine(self.gün, self.saat)
         return event_datetime < now
 class Yorum(models.Model):

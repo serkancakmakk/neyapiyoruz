@@ -30,12 +30,18 @@ path('katilmayi_birak/<slug:slug>/', views.katilmayi_birak, name='katilmayi_bira
 path('etkinlik/<slug:slug>/sil/', views.etkinlik_sil, name='etkinlik_sil'),
 path('etkinlik_düzenle/<slug:slug>', views.etkinlik_düzenle, name='etkinlik_düzenle'),
 path('mekan_güncelle/<int:mekan_id>', views.mekan_guncelle, name='mekan_güncelle'),
-path('mekanlar/', views.sahip_oldugunuz_mekanlar, name='sahip_oldugunuz_mekanlar'),
+path('mekanlar/', views.sahip_oldugunuz_mekanlar, name='mekanlar'),
 path('etkinliklerim/', views.etkinliklerim, name='etkinliklerim'),
 path('etkinlikten_at/<int:pk>/<slug:slug>/', views.etkinlikten_at, name='etkinlikten_at'),
 path('yorum_yap/<slug:slug>/', views.yorum_yap, name='yorum_yap'),
 path('yorum_sil/<int:pk>', views.yorum_sil, name='yorum_sil'),
 path('cevap_ver/<int:pk>/<slug:slug>', views.cevap_ver, name='cevap_ver'),
+path('mekan_sil/<int:pk>', views.mekan_sil, name='mekan_sil'),
+path('mekani_ac/<int:pk>', views.mekani_ac, name='mekani_ac'),
+path('mekani_kapat/<int:pk>', views.mekani_kapat, name='mekani_kapat'),
+path('olumlu_oy/<int:pk>/', views.olumlu_oy, name='olumlu_oy'),
+path('olumsuz_oy/<int:pk>/', views.olumsuz_oy, name='olumsuz_oy'),
+path('mekan_begeni_durumu/<int:pk>/', views.mekan_begeni_durumu, name='mekan_begeni_durumu'),
 
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

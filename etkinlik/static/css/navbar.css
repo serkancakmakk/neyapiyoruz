@@ -223,3 +223,45 @@ img {
     border-right: none;
 
   }
+.rating {
+    color: gold; /* Yıldız rengi */
+    font-size: 24px; /* Yıldız boyutu */
+  }
+  
+  
+.star {
+    display: inline-block;
+    width: 24px; /* Yıldız genişliği */
+    height: 24px; /* Yıldız yüksekliği */
+    background-image: url("static/empty-star.png");
+
+    background-size: cover;
+  }
+  
+  .star.filled {
+    background-image: url("static/filled-star.png"); /* Dolu yıldız görüntüsü */
+  }
+  .btn {
+    cursor: pointer;
+    outline: 0;
+    color: #AAA;
+  }
+  
+  .btn:focus {
+    outline: none;
+  }
+  
+  #like-btn  {
+    color: #AAA;
+  }
+  
+  #like-btn.liked{
+    color: green;
+  }
+  #dislike-btn  {
+    color: #AAA;
+  }
+  
+  #dislike-btn.disliked {
+    color: red;
+  }

@@ -4,7 +4,7 @@ from .models import Event, Profile, Mekan,Yorum,YorumCevap
 
 # # Register your models here.
 class MekanAdmin(admin.ModelAdmin):
-    list_display=('adi','adres','telefon_numarasi','sehir','ilce','webadresi','email','onayli','onay_tarihi')
+    list_display=('adi','adres','telefon_numarasi','sehir','ilce','webadresi','email','onayli','acik','onay_tarihi')
     ordering = ('adi',)
     search_fields = ('adi','adres',)
 admin.site.register(Mekan, MekanAdmin)

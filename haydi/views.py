@@ -115,12 +115,21 @@ def yer_detay(request, pk, year=None, month=None):
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
-
+    begeni_durumu = request.session.get('begeni_durumu', 'none')
     mekan = get_object_or_404(Mekan, pk=pk)
-    etkinlikler = mekan.etkinlikler.exclude(silindi=True)
+    user = request.user
+    olumlu_oy_durumu = mekan.olumlu_oy_kullananlar.filter(id=user.id).exists()
+    olumsuz_oy_durumu = mekan.olumsuz_oy_kullananlar.filter(id=user.id).exists()
 
+    
+    etkinlikler = mekan.etkinlikler.exclude(silindi=True)
+    oy_sayisi = mekan.olumlu_oy + mekan.olumsuz_oy
+    if oy_sayisi > 0:
+        rating = (mekan.olumlu_oy / oy_sayisi) * 5  # Yıldız sayısını hesaplama
+    else:
+        rating = 0
     data = create_calendar(year, month)
-    return render(request, 'etkinlik/yer_detay.html', {'mekan': mekan, 'etkinlikler': etkinlikler, **data})
+    return render(request, 'etkinlik/yer_detay.html', {'mekan': mekan,'begeni_durumu':begeni_durumu,'rating': rating,'olumsuz_oy_durumu': olumsuz_oy_durumu, 'olumlu_oy_durumu': olumlu_oy_durumu, 'etkinlikler': etkinlikler, **data})
 
 def eventlist(request,year=None, month=None):
     if year is None:
@@ -171,7 +180,6 @@ def eventdetail(request, slug, year=None, month=None):
     
 
 def home(request, year=None, month=None):
-    name = "Serkan"
     # Varsayılan olarak geçerli yıl ve ayı ata
     if year is None:
         year = datetime.now().year
@@ -179,8 +187,6 @@ def home(request, year=None, month=None):
         month = datetime.now().strftime('%B')
 
     data = create_calendar(year, month)
-
-    data["name"] = name
 
     # Şehirleri sorgula ve context'e ekle
     sehirler = Region.objects.all()[:10]
@@ -281,7 +287,7 @@ def etkinlik_ekle(request, year=None, month=None):
 
 
 def get_mekanlar(request, ilce_id):
-    mekanlar = Mekan.objects.filter(onayli=True,ilce_id=ilce_id).values('id', 'adi')
+    mekanlar = Mekan.objects.filter(onayli=True,acik =True,ilce_id=ilce_id).values('id', 'adi')
     return JsonResponse(list(mekanlar), safe=False)
 def register(request,year=None,month=None):
     if year is None:
@@ -355,10 +361,11 @@ def katilimci_ol(request, slug):
         messages.error(request, "Etkinlik yöneticisi sizsiniz")
         print('Yönetici Alanı Çalıştır')
     else:
-        if kontenjan == 0:
-            messages.info(request, "Etkinlik Daha Fazla Katılımcı Kabul Etmiyor")
-            print('Doğru Çalışıyor Gibi')
-            return redirect('eventdetail', slug=slug)
+        if etkinlik.katilimci_kontrol == True:
+            if kontenjan == 0:
+                messages.info(request, "Etkinlik Daha Fazla Katılımcı Kabul Etmiyor")
+                print('Doğru Çalışıyor Gibi')
+                return redirect('eventdetail', slug=slug)
         
         if event_datetime >= now:  # Etkinlik henüz gerçekleşmemişse
             katildigi_etkinlikler = request.user.profile.katildigi_etkinlikler.filter(gün=etkinlik.gün, saat=etkinlik.saat) # Katıldığı etkinlikleri giriş yapan kullanıcının etkinlikleri ile gün ve saat olarak filtreledim.
@@ -368,12 +375,15 @@ def katilimci_ol(request, slug):
                 return redirect('eventdetail', slug=slug)
             
             if son_katilma_saati > now:
-                
+                # Kullanıcının profiline etkinliği ekle
                 etkinlik.katilimcilar.add(request.user)  # Etkinlik nesnesine kullanıcıyı ekle
-                request.user.profile.katildigi_etkinlikler.add(etkinlik)  # Kullanıcının profiline etkinliği ekle
-                etkinlik.kontenjan -= 1
-                etkinlik.save()
-                print('Herhangi bir yere takılmadı, eklendi')
+                request.user.profile.katildigi_etkinlikler.add(etkinlik) 
+                if etkinlik.katilimci_kontrol == True:
+                    etkinlik.kontenjan -= 1
+                    etkinlik.save()
+                    print('Herhangi bir yere takılmadı, eklendi')
+              
+
             else:
                 messages.info(request, "Etkinlik saatine 1 saatten az bir süre süre kaldığı için bu etkinliğe katılmanız mümkün değil!")
                 print('Etkinlik Saatine 1 saatten fazla bir süre kalmadığı yer çalıştı.')
@@ -400,8 +410,9 @@ def katilmayi_birak(request, slug):
         if event_datetime >= now:  # Etkinlik henüz gerçekleşmemişse
             etkinlik.katilimcilar.remove(request.user)  # Etkinlik nesnesinden kullanıcıyı kaldır
             request.user.profile.katildigi_etkinlikler.remove(etkinlik)  # Kullanıcının profiline etkinliği kaldır
-            etkinlik.kontenjan += 1
-            etkinlik.save()
+            if etkinlik.katilimci_kontrol == True:
+                etkinlik.kontenjan += 1
+                etkinlik.save()
         else:
             messages.error(request, "Katıldığınız etkinliğin günü geçtiği için bu etkinlikten çıkamazsınız")
     return redirect('eventdetail', slug=slug)
@@ -591,6 +602,9 @@ def mekan_guncelle(request, mekan_id,year=None,month=None):
     if user != mekan.olusturan:
         messages.warning(request, 'Bu Yer Size Ait Değil')
         return redirect('yer_listesi')
+    if mekan.acik == True:
+        messages.warning(request, 'Mekan Şuan Faaliyette Güncelleme İşlemi Yapılamaz')
+        return redirect('mekanlar')
     else:
         if request.method == 'POST':
             form = MekanUpdateForm(request.POST, instance=mekan)
@@ -733,3 +747,119 @@ def cevap_ver(request, pk, slug):
         else:
             messages.info(request, 'Cevap vermek için giriş yapmalısınız')
     return redirect('eventdetail', slug=slug)
+
+def mekan_sil(request, pk):
+    mekan = get_object_or_404(Mekan, pk=pk)
+    etkinlikler = Event.objects.filter(mekan=mekan)
+    
+    if mekan.olusturan == request.user:
+        if etkinlikler.exists():
+            messages.info(request, "Bu mekanda etkinlikler bulunuyor. Bu mekan silinemez.")
+            return redirect('mekanlar')
+        else:
+            mekan.delete()
+            messages.success(request, "Mekan başarıyla silindi.")
+            return redirect('home')
+    else:
+        messages.warning(request, "Bu işlemi gerçekleştirmek için yetkiniz yok.")
+        return redirect('home')
+
+def mekani_ac(request,pk):
+    mekan = get_object_or_404(Mekan,pk=pk)
+
+    if mekan.olusturan == request.user:
+       if mekan.acik == True:
+        messages.success(request, "Bu mekan zaten faaliyette.")
+        return redirect('mekanlar')
+       else:
+        mekan.acik = True
+        mekan.save()
+        messages.success(request, "Mekan başarıyla açıldı.")
+        return redirect('yer_detay',pk=mekan.pk)
+    else:
+        messages.error(request, "Mekan size ait değil.")
+        return redirect('mekanlar')
+def mekani_kapat(request,pk):
+    mekan = get_object_or_404(Mekan,pk=pk)
+
+    if mekan.olusturan == request.user:
+       if mekan.acik == False:
+        messages.success(request, "Bu mekan zaten kapalı.")
+        return redirect('mekanlar')
+       else:
+        mekan.acik = False
+        mekan.save()
+        messages.success(request, "Mekan başarıyla kapatıldı.")
+        return redirect('mekanlar')
+    else:
+        messages.error(request, "Mekan size ait değil.")
+        return redirect('mekanlar')
+
+def olumlu_oy(request, pk):
+    mekan = get_object_or_404(Mekan, pk=pk)
+    user = request.user
+    
+    if user == mekan.olusturan:
+        messages.error(request, "Kendinize ait bir yerde oy kullanamazsınız")
+        return JsonResponse({'success': True})
+    
+    # Kullanıcının daha önce olumlu oy vermişse
+    if mekan.olumlu_oy_kullananlar.filter(id=user.id).exists():
+        mekan.olumlu_oy -= 1
+        mekan.olumlu_oy_kullananlar.remove(user)
+        mekan.save()  # Oy kaldırıldı, değişikliği kaydet
+    
+        print('Mekan Kaydedildi oy kullanlardan olumlu oy düştü')
+        return JsonResponse({'success': True})
+    
+    # Kullanıcının daha önce olumsuz oy vermişse, olumsuz oyunu kaldır
+    if mekan.olumsuz_oy_kullananlar.filter(id=user.id).exists():
+        mekan.olumsuz_oy -= 1
+        mekan.olumsuz_oy_kullananlar.remove(user)
+    
+    mekan.olumlu_oy += 1
+    mekan.olumlu_oy_kullananlar.add(user)
+    mekan.save()
+    
+    print('Olumlu oy#2')
+    return JsonResponse({'success': True})
+
+
+
+def olumsuz_oy(request, pk):
+    mekan = get_object_or_404(Mekan, pk=pk)
+    user = request.user
+    
+    if user == mekan.olusturan:
+        messages.error(request, "Kendinize ait bir yerde oy kullanamazsınız")
+        return JsonResponse({'success': True})
+    
+    if mekan.olumsuz_oy_kullananlar.filter(id=user.id).exists():
+        # Kullanıcı zaten olumsuz oy vermiş, oy kaldırılıyor
+        mekan.olumsuz_oy -= 1
+        mekan.olumsuz_oy_kullananlar.remove(user)
+        print('Kullanıcı zaten olumsuz oy vermiş, oy kaldırılıyor')
+    else:
+        # Kullanıcı ilk defa olumsuz oy kullanıyor
+        if mekan.olumlu_oy_kullananlar.filter(id=user.id).exists():
+            # Kullanıcı daha önce olumlu oy vermişse, olumlu oyunu kaldır
+            mekan.olumlu_oy -= 1
+            mekan.olumlu_oy_kullananlar.remove(user)
+        
+        mekan.olumsuz_oy += 1
+        mekan.olumsuz_oy_kullananlar.add(user)
+        print('Kullanıcı ilk defa olumsuz oy kullanıyor')
+    
+    mekan.save()
+    return JsonResponse({'success': True})
+
+def mekan_begeni_durumu(request, pk):
+    mekan = get_object_or_404(Mekan, pk=pk)
+    user = request.user
+
+    if mekan.olumlu_oy_kullananlar.filter(id=user.id).exists():
+        return JsonResponse({'durum': 'liked'})
+    elif mekan.olumsuz_oy_kullananlar.filter(id=user.id).exists():
+        return JsonResponse({'durum': 'disliked'})
+    else:
+        return JsonResponse({'durum': 'none'})

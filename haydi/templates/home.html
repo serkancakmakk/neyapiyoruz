@@ -8,7 +8,9 @@
         <div class="col-6 col-md-4 col-sm-4">
         <br/>
         <center>
-        <h1> Hello {{name}}! <h2>Bugün {{day}} {{ month }} {{ year }}</h2></h1> <br>
+        <h1> <small>Merhaba</small> {{request.user.username}}!
+           <h2>Bugün {{day}} {{ month }} {{ year }}</h2></h1>
+           <br>
     Şuan {{time}}<br>
     {{cal|safe}}<hr>
         </center>

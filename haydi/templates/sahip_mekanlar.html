@@ -2,29 +2,67 @@
 
 {% block content %}
 {% for mekan in mekanlar %}
-<div class="card" style="width: 18rem;">
+<div class="card" style="width: 25rem;">
   <img class="card-img-top" src="..." alt="Card image cap">
   <div class="card-body">
     <h5 class="card-title">{{mekan.adi}}</h5>
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <a href="{%url 'yer_detay' mekan.pk %}" class="btn btn-primary">Go somewhere</a>
-    <a href="{%url 'mekan_güncelle' mekan.pk %}" class="btn btn-primary">Güncelle</a>
-    <div class="btn-group dropright">
-      <button type="button" class="btn btn-danger">
-        Danger Zone
-      </button>
-      <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <span class="sr-only">Toggle Dropright</span>
-      </button>
-      <div class="dropdown-menu">
-          <a class="dropdown-item" href="#">Mekanı Sil</a>
-          <a class="dropdown-item" href="#">Tüm Etkinlikleri Görmezden Gel</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">Separated link</a>
-        </div>
+    <p class="card-text">{{mekan.aciklama}}</p>
+    {% if mekan.acik == False %}
+    <p class="card-text">Şuan Kapalı</p>
+    {% else %}
+    <p class="card-text">Şuan Açık</p>
+    {% endif %}
+    <div class="d-flex justify-content-between">
+      {% if mekan.acik == False %}
+      <a href="{%url 'mekan_güncelle' mekan.pk %}" class="btn btn-primary" title="Mekan Açıkken Güncelleme İşlemi Yapılamaz">Mekan Güncelle</a>
+      {% endif %}
+      {% if mekan.acik == True %}
+      <a href="{%url 'mekani_kapat' mekan.pk %}" class="btn btn-primary">
+        Mekanı Kapat
+      </a>
+      {% else %}
+      <a href="{%url 'mekani_ac' mekan.pk %}" class="btn btn-primary">
+        Mekanı Aç
+      </a>
+      {% endif %}
+    </div>
+    
+  </div>
+</div>
+
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="errorModalLabel">Etkinlik Sil</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.level_tag }}">
+              {% for message in messages %}
+                {{ message }}
+              {% endfor %}
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  {% if messages %}
+    $(document).ready(function() {
+      $('#errorModal').modal('show');
+    });
+  {% endif %}
+</script>
 {% endfor %}
 {% endblock %}

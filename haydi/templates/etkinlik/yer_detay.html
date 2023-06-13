@@ -7,7 +7,17 @@
         <div class="col-12">
             
             <div class="card" id="yeretkinlik">
-                <h5 class="card-header">{{ mekan.adi }}</h5>
+                <h5 class="card-header">
+                    {{ mekan.adi }}
+                    <div class="rating">
+                        <span class="star {% if rating >= 1 %}filled{% endif %}"></span>
+                        <span class="star {% if rating >= 2 %}filled{% endif %}"></span>
+                        <span class="star {% if rating >= 3 %}filled{% endif %}"></span>
+                        <span class="star {% if rating >= 4 %}filled{% endif %}"></span>
+                        <span class="star {% if rating >= 5 %}filled{% endif %}"></span>
+                      </div>
+                      
+                  </h5>
                 <div class="card-body">
                     
                     <ul class="list-unstyled">
@@ -20,7 +30,175 @@
                         <li><strong>Onaylı:</strong> {{ mekan.onayli }}</li>
                         <li><strong>Onay Tarihi:</strong> {{ mekan.onay_tarihi }}</li>
                     </ul>
-                </div>
+                    {% if mekan.olusturan != request.user %}
+                    <a class="btn" href="{% url 'olumlu_oy' mekan.pk %}" id="like-btn"><i class="fa fa-thumbs-up fa-lg" aria-hidden="true"></i></a>
+                    <a class="btn" href="{% url 'olumsuz_oy' mekan.pk %}" id="dislike-btn"><i class="fa fa-thumbs-down fa-lg" aria-hidden="true"></i></a>
+                    {% endif %}
+                    <script>   
+                    var likeBtn = document.querySelector('#like-btn');
+                    var dislikeBtn = document.querySelector('#dislike-btn');
+                    
+                    // Sayfa yüklendiğinde buton durumunu kontrol et ve güncelle
+                    window.addEventListener('DOMContentLoaded', function() {
+                      updateButtonStatus(); // Buton durumunu güncelle
+                    
+                      // Beğeni butonuna tıklandığında
+                      likeBtn.addEventListener('click', function(event) {
+                        event.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+                        // Sayfa güncellensin istersen aşağıdaki satırı kullanabilirsin
+                        // location.reload(); // Sayfayı yenile
+                                            
+                        if (likeBtn.classList.contains('liked')) {
+                          // Beğeni butonu zaten seçili ise, beğeniyi kaldır
+                          removeLike();
+                        } else {
+                          // Beğeni butonuna ilk kez tıklandığında, beğeni ekle
+                          addLike();
+                        }
+                      });
+                    
+                      // Beğenmeme butonuna tıklandığında
+                      dislikeBtn.addEventListener('click', function(event) {
+                        event.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+                        // Sayfa güncellensin istersen aşağıdaki satırı kullanabilirsin
+                        // location.reload(); // Sayfayı yenile
+                    
+                        if (dislikeBtn.classList.contains('disliked')) {
+                          // Beğenmeme butonu zaten seçili ise, beğenmeme oyununu kaldır
+                          removeDislike();
+                        } else {
+                          // Beğenmeme butonuna ilk kez tıklandığında, beğenmeme oyunu ekle
+                          addDislike();
+                        }
+                      });
+                    });
+                    
+                    // Beğeni durumunu güncelle
+                    function updateButtonStatus() {
+                      fetch("{% url 'mekan_begeni_durumu' mekan.pk %}")
+                        .then(response => response.json())
+                        .then(data => {
+                          if (data.durum === 'liked') {
+                            likeBtn.classList.add('liked');
+                            dislikeBtn.classList.remove('disliked');
+                          } else if (data.durum === 'disliked') {
+                            likeBtn.classList.remove('liked');
+                            dislikeBtn.classList.add('disliked');
+                          } else {
+                            likeBtn.classList.remove('liked');
+                            dislikeBtn.classList.remove('disliked');
+                          }
+                        })
+                        .catch(error => {
+                          console.error("Hata oluştu:", error);
+                        });
+                    }
+                    
+                    // Beğeni ekle
+                    function addLike() {
+                      likeBtn.classList.add('liked');
+                      dislikeBtn.classList.remove('disliked');
+                    
+                      localStorage.setItem('buttonStatus', 'liked');
+                    
+                      // AJAX isteği gönder - Beğeni ekleme işlemi
+                      fetch("{% url 'olumlu_oy' mekan.pk %}", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": "{{ csrf_token }}"
+                        }
+                      })
+                        .then(response => response.json())
+                        .then(data => {
+                          updateButtonStatus(); // Buton durumunu güncelle
+                        })
+                        .catch(error => {
+                          console.error("Hata oluştu:", error);
+                        });
+                    }
+                    
+                    // Beğeni kaldır
+                    function removeLike() {
+                      likeBtn.classList.remove('liked');
+                      dislikeBtn.classList.remove('disliked');
+                    
+                      localStorage.setItem('buttonStatus', 'none');
+                    
+                      // AJAX isteği gönder - Beğeni kaldırma işlemi
+                      fetch("{% url 'olumlu_oy' mekan.pk %}", {
+                        method: "DELETE",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": "{{ csrf_token }}"
+                        }
+                      })
+                        .then(response => response.json())
+                        .then(data => {
+                          updateButtonStatus(); // Buton durumunu güncelle
+                        })
+                        .catch(error => {
+                          console.error("Hata oluştu:", error);
+                        });
+                    }
+                    
+                    // Olumsuz oy ekle
+                    function addDislike() {
+                      likeBtn.classList.remove('liked');
+                      dislikeBtn.classList.add('disliked');
+                    
+                      localStorage.setItem('buttonStatus', 'disliked');
+                    
+                      // AJAX isteği gönder - Olumsuz oy ekleme işlemi
+                      fetch("{% url 'olumsuz_oy' mekan.pk %}", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": "{{ csrf_token }}"
+                        }
+                      })
+                        .then(response => response.json())
+                        .then(data => {
+                          updateButtonStatus(); // Buton durumunu güncelle
+                        })
+                        .catch(error => {
+                          console.error("Hata oluştu:", error);
+                        });
+                    }
+                    
+                    // Olumsuz oy kaldır
+                    function removeDislike() {
+                      likeBtn.classList.remove('liked');
+                      dislikeBtn.classList.remove('disliked');
+                    
+                      localStorage.setItem('buttonStatus', 'none');
+                    
+                      // AJAX isteği gönder - Olumsuz oy kaldırma işlemi
+                      fetch("{% url 'olumsuz_oy' mekan.pk %}", {
+                        method: "DELETE",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": "{{ csrf_token }}"
+                        }
+                      })
+                        .then(response => response.json())
+                        .then(data => {
+                          updateButtonStatus(); // Buton durumunu güncelle
+                        })
+                        .catch(error => {
+                          console.error("Hata oluştu:", error);
+                        });
+                    }
+                    
+</script>                    
+
+                    
+                    
+                    
+                    
+                  </div>
             </div>
         </div>
     </div>
@@ -48,4 +226,50 @@
     </div>
     </div>
 </div>
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="errorModalLabel">Etkinlik Sil</h5>
+          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.level_tag }}">
+                {% for message in messages %}
+                  {{ message }}
+                {% endfor %}
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+    var likeBtn = document.querySelector('#like-btn');
+    var dislikeBtn = document.querySelector('#dislike-btn');
+    
+    likeBtn.addEventListener('click', function() {
+      this.classList.toggle('liked');
+    });
+    
+    dislikeBtn.addEventListener('click', function() {
+      this.classList.toggle('disliked');
+    });
+</script>
+
+  <script>
+    {% if messages %}
+      $(document).ready(function() {
+        $('#errorModal').modal('show');
+      });
+    {% endif %}
+  </script>
 {% endblock %}
