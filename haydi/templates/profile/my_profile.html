@@ -6,7 +6,12 @@
     <div class="row g-0"><!-- Start row g-0 -->
       <div class="col-md-4"><!-- Start col-md-4 -->
         <div class="d-flex align-items-center justify-content-center" style="height: 100%;"><!-- Start d-flex -->
+          {% if user.profile.profile_img and user.profile.profile_img.url %}
           <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+      {% else %}
+          
+      {% endif %}
+      
         </div><!-- End d-flex -->
       </div><!-- End col-md-4 -->
       <div class="col-md-8"><!-- Start col-md-8 -->

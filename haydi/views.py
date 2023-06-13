@@ -322,9 +322,10 @@ def update_profile(request, year=None, month=None):
     data = create_calendar(year, month)
 
     try:
-        event_user = Profile.objects.get(user=request.user)
+            event_user = Profile.objects.get(user=request.user)
     except Profile.DoesNotExist:
-        event_user = None
+        user = request.user
+        event_user = Profile.objects.create(user=user)
 
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, request.FILES, instance=event_user)

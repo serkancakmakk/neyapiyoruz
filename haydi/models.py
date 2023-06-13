@@ -103,7 +103,7 @@ class YorumCevap(models.Model):
     
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     ad = models.CharField(max_length=20)
     soyad = models.CharField(max_length=20)
     profile_img = models.ImageField(upload_to=user_directory_path)
