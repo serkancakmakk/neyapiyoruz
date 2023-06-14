@@ -4,11 +4,11 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/alert.css' %}">
 <br />
-<div class="container">
+<div class="container-fluid">
     <!-- Start Container -->
     <div class="row">
         <!-- Start row -->
-        <div class="col-8">
+        <div class="col-sm-12 col-lg-8">
             <!-- Start col-8 -->
             <div class="card">
                 <!-- Start card -->
@@ -99,18 +99,16 @@
                                         <!--start tr-->
                                         <td>
                                             <!--start profile_img td-->
-                                            <img src="{{ katilimci.profile.profile_img.url }}" alt="" width:>
-                                            <a href="#" class="user-link">{{ katilimci.ad }}{{ katilimci.soyad }}</a>
-                                            <span class="user-subhead">{{ katilimci.profile.ad }}
-                                                {{ katilimci.profile.soyad }}</span>
+                                            {% comment %} <span class="user-link">{{ katilimci.ad|title }} {{ katilimci.soyad|title }}</span> {% endcomment %}
+                                            <span class="user-subhead">{{ katilimci.profile.ad|title }} {{ katilimci.profile.soyad|title }}</span>
                                         </td>
                                         <!--end td-->
-                                        <td>
+                                        <td class="d-none d-md-table-cell">
                                             <!--start datejoined td-->
                                             {{ katilimci.date_joined|date:"d M Y" }}
                                         </td>
                                         <!--end datejoined td-->
-                                        <td class="text-center">
+                                        <td class="text-center d-none d-md-table-cell">
                                             <!--start td text center user active-->
                                             {% if katilimci.is_active %}
                                             <span class="badge bg-success">&#10004;</span>
@@ -119,26 +117,23 @@
                                             {% endif %}
                                         </td>
                                         <!--end td text center user active-->
-                                        <td>
+                                        <td class="d-none d-md-table-cell">
                                             <!--start td email-->
                                             <a href="#">{{ katilimci.profile.email }}</a>
                                         </td>
                                         <!--end td email-->
                                         <td>
                                             <!--start actions td-->
-                                            <form method="POST"
-                                                action="{% url 'etkinlikten_at' katilimci.pk etkinlik.slug %}">
+                                            <form method="POST" action="{% url 'etkinlikten_at' katilimci.pk etkinlik.slug %}">
                                                 {% csrf_token %}
-                                                <a href="{% url 'show_profile' katilimci.username %}"
-                                                    class="table-link">
+                                                <a href="{% url 'show_profile' katilimci.username %}" class="table-link">
                                                     <span class="fa-stack">
                                                         <i class="fa fa-square fa-stack-2x"></i>
                                                         <i class="fa fa-search-plus fa-stack-1x fa-inverse"></i>
                                                     </span>
                                                 </a>
                                                 {% if request.user == etkinlik.yönetici %}
-                                                <a href="#" class="table-link danger" data-toggle="modal"
-                                                    data-target="#confirmModal">
+                                                <a href="#" class="table-link danger" data-toggle="modal" data-target="#silModal">
                                                     <span class="fa-stack">
                                                         <i class="fa fa-square fa-stack-2x"></i>
                                                         <i class="fa fa-trash-o fa-stack-1x fa-inverse"></i>
@@ -152,6 +147,8 @@
                                     <!--end tr-->
                                     {% endfor %}
                                 </tbody>
+                                <!--end tbody-->
+                                
                                 <!--end tbody-->
                                 <!--Sil Modeli -->
                                 <div class="modal fade" id="silModal" tabindex="-1" role="dialog"
@@ -278,23 +275,22 @@
     </div>
 </div>
 <!-- End Col-8 -->
-<div class="col-4">
+<div class="col-lg-4 col-sm-12">
     <div class="row d-flex justify-content-center">
-        <div class="card shadow-0 border" style="background-color: #f0f2f5;">
             <div class="card-body p-4">
-                <form method="POST" action="{% url 'yorum_yap' etkinlik.slug %}">
+                <form method="POST" action="{% url 'yorum_yap' etkinlik.slug %}" class="yorum-yap">
                     {% csrf_token %}
                     <div class="form-outline mb-4">
-                        <input type="text" id="addANote" class="form-control" placeholder="Type comment..." name="yorum"
-                            id yorum />
+                        <input type="text" id="addANote" class="form-control" placeholder="Type comment..." name="yorum" id yorum />
                         <label class="form-label" style="cursor: pointer;">
                             <span>+ Yorum Yap</span>
-                            
                             <button type="submit" style="display: none;"></button>
                         </label>
                     </div>
                 </form>
+                
                 {% for yorum in yorumlar %}
+                <div class="d-flex flex-column-reverse fluid">
                 <div class="card mb-4">
                     <div class="card-body">
                         {% if yorum in son_yorumlar %}
@@ -307,31 +303,13 @@
                             </button>
                             <div class="collapse" id="yorumCollapse{{ yorum.id }}">
                                 <p>{{ yorum.yorum }}</p>
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        {% for cevap in cevaplar_listesi %}
-                                            {% if cevap.yorum.id == yorum.id %}
-                                                <p>{{ cevap.cevap }}</p>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
-                                </div>
                             </div>
                         {% else %}
                             <p>{{ yorum.yorum }}</p>
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    {% for cevap in cevaplar %}
-                                        {% if cevap.yorum.id == yorum.id %}
-                                            <p>{{ cevap.cevap }}</p>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
                         {% endif %}
                         <div class="d-flex justify-content-between">
                             <div class="d-flex flex-row align-items-center">
-                                <img src="{{ yorum.yorum_sahibi.profile.profile_img.url }}" alt="avatar" width="25" height="25" />
+                                {% comment %} <img src="{{ yorum.yorum_sahibi.profile.profile_img.url }}" alt="avatar" width="25" height="25" /> {% endcomment %}
                                 <p class="small mb-0 ms-2">{{ yorum.yorum_sahibi.profile.username }}</p>
                             </div>
                             <div class="d-flex flex-row align-items-center">
@@ -358,10 +336,10 @@
                         </div>
                     </div>
                 </div>
-                
+            </div>
                 {% endfor %}
-                <div class="pagination-container">
-                    <ul class="pagination justify-content-center">
+                <div class="pagination-container fixed-bottom">
+                    <ul class="pagination justify-content-center ">
                         {% if sayfa.has_previous %}
                         <li class="page-item">
                             <a class="page-link" href="?sayfa={{ sayfa.previous_page_number }}">Önceki</a>

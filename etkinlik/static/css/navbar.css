@@ -265,3 +265,65 @@ img {
   #dislike-btn.disliked {
     color: red;
   }
+ /* Mobil Uyumluluk Stil Kuralları */
+ @media only screen and (max-width: 600px) {
+  .table.user-list th:not(:first-child),
+  .table.user-list td:not(:first-child) {
+    display: none;
+  }
+
+  .table.user-list td:first-child {
+    width: 100%;
+  }
+
+  .table.user-list th:first-child {
+    display: table-cell;
+  }
+}
+
+/* @media screen and (max-width: 768px) {
+  #comment-area {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+.comment {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+}   
+@media screen and (max-width: 768px) {
+  .card-body {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .card-body p {
+    max-height: 20px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .card-body .collapse {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    transition: max-height 0.3s ease-out;
+    max-height: 0;
+    overflow: hidden;
+  }
+
+  .card-body .collapse.show {
+    max-height: 100%;
+  }
+
+  .card-body .collapse p {
+    margin-bottom: 10px;
+  }
+} */
