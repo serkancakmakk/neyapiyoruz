@@ -200,14 +200,15 @@ def eventdetail(request, slug, year=None, month=None):
 
 
 
-    
+
+@login_required
 def home(request, year=None, month=None):
     # Varsayılan olarak geçerli yıl ve ayı ata
     if year is None:
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
-    bildirimler = Bildirim.objects.filter(bildirim_alani=request.user.profile).order_by('-id')
+    bildirimler = Bildirim.objects.filter(bildirim_alani=request.user.profile).order_by('-olusturulma_tarihi')
     data = create_calendar(year, month)
 
     # Şehirleri sorgula ve context'e ekle
@@ -216,7 +217,6 @@ def home(request, year=None, month=None):
     data["bildirimler"] = bildirimler
 
     return render(request, 'home.html', data)
-
 
 
 from django.db.models import Q
