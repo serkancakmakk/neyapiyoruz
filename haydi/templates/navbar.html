@@ -39,6 +39,7 @@
           <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             {{request.user.username}}
           </a>
+          
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'yer_listesi' %}">
                 <i class="fas fa-map-marker-alt"></i> Yer Listesi
@@ -62,9 +63,53 @@
             <a class="dropdown-item" href="{% url 'logout' %}">
                 <i class="fas fa-sign-out-alt"></i> Çıkış Yap
             </a>
+            
         </div>
         
         </li>
+          <!-- ... diğer navbar öğeleri ... -->
+          <li class="nav-item dropdown">
+            <a class="nav-link active dropdown-toggle"onclick="updateNotificationCount()"  href"$" id="notificationDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-bell"></i>
+              <span class="badge badge-danger" id="notificationCount" data-bildirim-sayisi="{{ request.user.profile.bildirim_sayisi }}">{{ request.user.profile.bildirim_sayisi }}</span>
+            </a>
+            
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            
+            
+            <div class="dropdown-menu dropdown-menu-right notification-menu" aria-labelledby="notificationDropdown">
+              {% if bildirimler.exists %}
+                {% for bildirim in bildirimler|slice:":2" %}
+                  <p class="text-center" id="bildirim">{{ bildirim.bildirim }}</p>
+                  <hr class="custom-hr">
+                {% endfor %}
+            
+                {% if bildirimler.count > 2 %}
+                  <a class="dropdown-item text-center" href="#" data-toggle="dropdown" data-target=".notification-menu">Devamını Gör</a>
+                  <div class="dropdown">
+                    <div id="notificationDropdownMenu" class="dropdown-menu dropdown-menu-right notification-menu1" aria-labelledby="notificationDropdown">
+                      {% for bildirim in bildirimler|slice:"2:" %}
+                        <p class="text-center" id="bildirim">{{ bildirim.bildirim }}</p>
+                        <hr class="custom-hr">
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+            
+              {% else %}
+                <p class="text-center">Henüz bildirim yok</p>
+              {% endif %}
+            </div>
+            
+            
+           
+            
+            
+            
+          </li>
+        </ul>
+        
+        
         {% else %}
         <li class="nav-item active dropdown">
           <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -80,6 +125,7 @@
           <input class="form-control mr-sm-2" type="text" placeholder="Search" name="searched">
           <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
         </form>
+
       </ul>
     </div>
   </nav>

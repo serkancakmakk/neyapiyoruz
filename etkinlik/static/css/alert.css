@@ -18,3 +18,14 @@
     color: #059;
     background-color: #BEF;
   }
+  #eventdetailpage {
+    background-color: #BEF;
+  }
+  #yorumyap{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 17px;
+  }
+  #yorumyap:hover {
+    font-weight: bold;
+  }
+  

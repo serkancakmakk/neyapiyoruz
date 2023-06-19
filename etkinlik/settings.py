@@ -136,10 +136,7 @@ MEDIA_URL = '/media/'
 CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': [
-            ['Format', 'Bold', 'Italic', 'Underline', 'Strike', 'BulletedList', 'NumberedList', 'Indent', 'Outdent'],
-            ['Link', 'Unlink', 'Table', 'Blockquote', 'CodeSnippet', 'TextColor', 'BGColor'],
-            ['Undo', 'Redo'],
-            ['Source'],
+            ['Format', 'Bold', 'Italic', 'Underline', 'Strike', ],
         ],
         'format_tags': 'p;h1;h2;h3;h4;h5;h6',
         'removePlugins': 'image',

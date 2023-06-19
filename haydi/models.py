@@ -34,7 +34,7 @@ class Mekan(models.Model):
     ilce = models.ForeignKey(SubRegion, on_delete=models.SET_NULL, null=True, blank=True)
     aciklama = models.TextField('Mekan Açıklaması', null=True, blank=True)
     olusturan = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    onayli = models.BooleanField('Onaylı', default=False)
+    onayli = models.BooleanField('Onaylı', default=True) # default False olacak deneme için true dedim
     onay_tarihi = models.DateTimeField('Onay Tarihi', null=True, blank=True)
     silindi = models.BooleanField('Silindi',default='False')
     acik = models.BooleanField('Etkinliğe Açık',default=False)
@@ -100,7 +100,8 @@ class YorumCevap(models.Model):
 
     def __str__(self):
         return self.cevap
-    
+
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -112,6 +113,9 @@ class Profile(models.Model):
     kayit_tarihi = models.DateTimeField(auto_now_add=True)
     katildigi_etkinlikler = models.ManyToManyField(Event, related_name='katilimcilar_profil', blank=True)
     olusturdugu_etkinlikler = models.ManyToManyField(Event, related_name='olusturan_profil', blank=True)
+    bildirimler = models.ManyToManyField('Bildirim', related_name='bildirim_alani1', blank=True,null=True)
+    bildirim_sayisi = models.PositiveIntegerField(default = 0 ,null=True,blank=True,)
+
 
     @property
     def username(self):
@@ -127,3 +131,9 @@ class Profile(models.Model):
 
     def get_katildigi_etkinlik_sayisi(self):
         return self.katildigi_etkinlikler.count()
+class Bildirim(models.Model):
+    etkinlik = models.ForeignKey(Event, on_delete=models.DO_NOTHING, null=True, blank=True)
+    etkilesim = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    bildirim_alani = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True, related_name='bildirimler1')
+    bildirim = models.TextField(max_length=255,null=True, blank=True)
+    olusturulma_tarihi = models.DateTimeField(default=timezone.now)

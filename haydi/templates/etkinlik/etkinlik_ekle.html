@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-  <div class="container">
+  <div class="container fluid">
     <br/>
     
   
@@ -60,16 +60,15 @@
           <div class="form-group col-md-4 mb-3">
             {{ form.saat }}
           </div>
-          <div class="form-group col-md-8 mb-5">
+          <div class="form-group col-md-4 mb-3">
             <small class="form-text text-muted">Açıklama Giriniz</small>
             {{ form.açiklama }}
-          </div>
+        </div>
           <br/>
           <button type="submit" class="btn btn-primary btn-block col-md-4 mb-3">Başvuru Oluştur</button>
         </form>
 
       {% endif %}
-      {{form.as_p}}
 <!-- Modal kodu -->
 <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">

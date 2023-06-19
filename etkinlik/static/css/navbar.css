@@ -1,6 +1,4 @@
-.hm-gradient {
-    background-image: linear-gradient(to top, #f3e7e9 0%, #e3eeff 99%, #e3eeff 100%);
-}
+
 
 .navbar .dropdown-menu a:hover {
     color: #616161 !important;
@@ -24,9 +22,14 @@
     color: #000;
   }
 .navbar {
-    background-color: #17a2b8;
+    background-color: #428cc9;
 }
-
+.nav-item.active{
+  font-weight: bold;
+}
+.nav-item {
+  font-weight: bold;
+}
 .navbar-brand {
     position: absolute;
     left: 50%;
@@ -183,10 +186,21 @@ img {
     /* İstenilen boşluk değerini burada ayarlayabilirsiniz */
 }
 
-#newcomment {
-    color: green;
-    text-size-adjust: 10;
+@keyframes text-size-animation {
+  0% {
+    font-size: 12,8px;
+  }
+  50% {
+    font-size: 24px;
+  }
+  100% {
+    font-size: 16px;
+  }
+}
 
+#newcomment {
+  color: green;
+  animation: text-size-animation 1s;
 }
 #etkinlikcard{
     background-color: #11e7e3;
@@ -198,7 +212,30 @@ img {
 #etkinlikcard a{
     color: #000000;
 }
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+  /* background-color: transparent; */
+}
 
+.navbar.scrolled {
+  background-color: #00fbff; /* İstediğiniz arka plan rengini buraya yazın */
+}
+.dropdown-menu.notification-menu {
+  min-width: 300px; /* İstediğiniz genişliği burada ayarlayabilirsiniz */
+}
+#bildirim{
+  font-weight: lighter;
+}
+.notification-menu.show {
+  display: block;
+}
+.custom-hr {
+  border-color: black; /* Çizgi rengini istediğiniz değere ayarlayabilirsiniz */
+  border-width: 2px; /* Çizgi kalınlığını istediğiniz değere ayarlayabilirsiniz */
+}
 /* 
 .card-link {
     display: inline-block;
@@ -267,18 +304,23 @@ img {
   }
  /* Mobil Uyumluluk Stil Kuralları */
  @media only screen and (max-width: 600px) {
-  .table.user-list th:not(:first-child),
-  .table.user-list td:not(:first-child) {
+  .table.user-list th:not(:last-child,:first-child),
+  .table.user-list td:not(:last-child,:first-child) {
     display: none;
   }
 
   .table.user-list td:first-child {
     width: 100%;
   }
+  .table.user-list td:last-child {
+    width: 100%;
+  }
 
   .table.user-list th:first-child {
     display: table-cell;
   }
+  .table.user-list th:last-child {
+    display: table-cell;
 }
 
 /* @media screen and (max-width: 768px) {
@@ -327,3 +369,8 @@ img {
     margin-bottom: 10px;
   }
 } */
+.ckeditor-container .ck-editor__editable {
+  width: 2%;
+  max-width: 30px; /* İstenilen genişlik değeri */
+  height: 20px; /* İstenilen yükseklik değeri */
+}

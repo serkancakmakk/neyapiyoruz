@@ -16,7 +16,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from cities_light.models import City,Region,SubRegion
 from django.template.loader import render_to_string
-from .models import Mekan,Event, Profile, Yorum, YorumCevap
+from .models import Bildirim, Mekan,Event, Profile, Yorum, YorumCevap
 from .forms import MekanForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import authenticate, login
@@ -24,6 +24,29 @@ from django.shortcuts import render, redirect
 from django.core.paginator import Paginator, Page
 
 from django.contrib.auth.decorators import login_required
+# def navbar(request):
+#     bildirimler = Bildirim.objects.filter(bildirim_alani=request.user.profile).order_by('-bildirim.olusturulma_tarihi')
+#     user = request.user
+#     context = {
+#         'bildirimler': bildirimler,
+#         'user': user,
+#     }
+#     return render(request, 'navbar.html', context)
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def bildirim_acildi(request):
+    user = request.user
+    profile = user.profile
+    if request.method == "POST":
+        if profile.bildirim_sayisi == 0:
+            print('Buraya geldi')
+            return HttpResponse(status=200)  # İs
+        else:
+            print('Buraya geldi else kısmı')
+            profile.bildirim_sayisi = 0
+            profile.save()
+            return HttpResponse(status=200)  # İs
 
 def get_ilceler(request, sehir_id):
     ilceler = SubRegion.objects.filter(region_id=sehir_id).values('id', 'name')
@@ -178,21 +201,22 @@ def eventdetail(request, slug, year=None, month=None):
 
 
     
-
 def home(request, year=None, month=None):
     # Varsayılan olarak geçerli yıl ve ayı ata
     if year is None:
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
-
+    bildirimler = Bildirim.objects.filter(bildirim_alani=request.user.profile).order_by('-id')
     data = create_calendar(year, month)
 
     # Şehirleri sorgula ve context'e ekle
     sehirler = Region.objects.all()[:10]
     data["sehirler"] = sehirler
+    data["bildirimler"] = bildirimler
 
     return render(request, 'home.html', data)
+
 
 
 from django.db.models import Q
@@ -259,14 +283,18 @@ def etkinlik_ekle(request, year=None, month=None):
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
-    
+
     if request.method == "POST":
         form = EtkinlikForm(request.POST)
         if form.is_valid():
             etkinlik = form.save(commit=False)
             etkinlik.yönetici = request.user
-            
-            if etkinlik.gün.date() < date.today():
+
+            # Aynı gün ve saatte etkinlik kontrolü
+            existing_event = request.user.profile.olusturdugu_etkinlikler.filter(gün=etkinlik.gün, saat=etkinlik.saat)
+            if existing_event:
+                form.add_error(None, 'Bu saatte başka bir etkinlik zaten var.')
+            elif etkinlik.gün.date() < date.today():
                 form.add_error('gün', 'Geçmiş tarihe etkinlik ekleyemezsiniz.')
             else:
                 now = datetime.now().time()
@@ -280,9 +308,10 @@ def etkinlik_ekle(request, year=None, month=None):
                     return redirect('eventdetail', slug=slug)
     else:
         form = EtkinlikForm()
-    
+
     data = create_calendar(year, month)
     return render(request, 'etkinlik/etkinlik_ekle.html', {'form': form, **data})
+
 
 
 
@@ -322,7 +351,7 @@ def update_profile(request, year=None, month=None):
     data = create_calendar(year, month)
 
     try:
-            event_user = Profile.objects.get(user=request.user)
+        event_user = Profile.objects.get(user=request.user)
     except Profile.DoesNotExist:
         user = request.user
         event_user = Profile.objects.create(user=user)
@@ -332,10 +361,12 @@ def update_profile(request, year=None, month=None):
         password_form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             profile = form.save(commit=False)
-            if not profile.profile_img:  # Eğer resim alanı boş bırakıldıysa
-                profile.profile_img = event_user.profile_img  # Mevcut profil resmini koru
-            user = request.user  # user değişkenini tanımla
+            user = request.user
             profile.user = user
+
+            if not form.cleaned_data['profile_img']:
+                profile.profile_img = event_user.profile_img
+
             profile.save()
 
             if password_form.is_valid():
@@ -351,10 +382,12 @@ def update_profile(request, year=None, month=None):
 
 
 
+
 def katilimci_ol(request, slug):
     etkinlik = get_object_or_404(Event, slug=slug)
     katilimcilar = etkinlik.katilimcilar.all()
     now = datetime.now()
+    user = request.user
     kontenjan = etkinlik.kontenjan
     event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
     son_katilma_saati = event_datetime - timedelta(hours=1)
@@ -378,12 +411,29 @@ def katilimci_ol(request, slug):
             if son_katilma_saati > now:
                 # Kullanıcının profiline etkinliği ekle
                 etkinlik.katilimcilar.add(request.user)  # Etkinlik nesnesine kullanıcıyı ekle
-                request.user.profile.katildigi_etkinlikler.add(etkinlik) 
+                request.user.profile.katildigi_etkinlikler.add(etkinlik)
+                bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{user.username} adlı kullanıcı {etkinlik.ad} adlı etkinliğinize katıldı.")
+                etkinlik.yönetici.profile.bildirimler.add(bildirim)
+                etkinlik.yönetici.profile.bildirim_sayisi += 1 
+                etkinlik.yönetici.profile.save()
+                bildirim.save()
+                if kontenjan == 0:
+                    bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{etkinlik.ad} adlı etkinliğinizin kontenjanı doldu.")
+                    etkinlik.yönetici.profile.bildirimler.add(bildirim)
+                    etkinlik.yönetici.profile.bildirim_sayisi += 1 
+                    etkinlik.yönetici.profile.save()
+                    bildirim.save()
+                print('Bildirim Kaydetti')
+                etkinlik.yönetici.save()
+
+                
                 if etkinlik.katilimci_kontrol == True:
                     etkinlik.kontenjan -= 1
                     etkinlik.save()
                     print('Herhangi bir yere takılmadı, eklendi')
-              
+                  
+
+
 
             else:
                 messages.info(request, "Etkinlik saatine 1 saatten az bir süre süre kaldığı için bu etkinliğe katılmanız mümkün değil!")
@@ -411,6 +461,14 @@ def katilmayi_birak(request, slug):
         if event_datetime >= now:  # Etkinlik henüz gerçekleşmemişse
             etkinlik.katilimcilar.remove(request.user)  # Etkinlik nesnesinden kullanıcıyı kaldır
             request.user.profile.katildigi_etkinlikler.remove(etkinlik)  # Kullanıcının profiline etkinliği kaldır
+            try:
+                bildirim = Bildirim.objects.get(etkinlik=etkinlik, etkilesim=request.user)
+                bildirim.delete()
+            except Bildirim.DoesNotExist:
+                # İstenilen kriterlere uygun Bildirim nesnesi bulunamadı
+                print('Bildirim Bulunamadı')
+
+
             if etkinlik.katilimci_kontrol == True:
                 etkinlik.kontenjan += 1
                 etkinlik.save()
@@ -494,8 +552,11 @@ def my_profile(request, year=None, month=None):
     olusturdugu_etkinlik_sayisi = olusturdugu_etkinlikler.count()
     son_etkinlikler = olusturdugu_etkinlikler.order_by('-id')
     son_etkinliklerim = son_etkinlikler[:2]
+    olusturdugu_etkinlik_id_list = olusturdugu_etkinlikler.values_list('id', flat=True)
+    bildirimler = Bildirim.objects.filter(etkinlik_id__in=olusturdugu_etkinlik_id_list).order_by('-olusturulma_tarihi')
     context = {
         'user': user,
+        'bildirimler':bildirimler,
         'katildigi_etkinlikler': katildigi_etkinlikler,
         'katildigi_etkinlik_sayisi': katildigi_etkinlik_sayisi,
         'olusturdugu_etkinlikler': olusturdugu_etkinlikler,
@@ -696,6 +757,11 @@ def yorum_yap(request, slug):
                     yorum.event = etkinlik
                     yorum.yorum_sahibi = user
                     yorum.save()
+                    bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{user.username} adlı kullanıcı {etkinlik.ad} yorum yaptı.")
+                    etkinlik.yönetici.profile.bildirimler.add(bildirim)
+                    etkinlik.yönetici.profile.bildirim_sayisi += 1 
+                    etkinlik.yönetici.profile.save()
+                    bildirim.save()
                     return redirect('eventdetail', slug=slug)
             else:
                 messages.info(request, 'Katılımcı Olmadığınız Etkinliğe Yorum Yapamazsınız')

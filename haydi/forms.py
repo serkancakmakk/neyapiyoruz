@@ -66,7 +66,7 @@ class EtkinlikForm(forms.ModelForm):
     kontenjan = forms.IntegerField(label='Kontenjan', required=False)
     katilimci_kontrol = forms.BooleanField(label='Katılımcı Kontrolü', required=False)
     saat = forms.TimeField(widget=TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
-    açiklama = RichTextUploadingField(config_name='simple_toolbar_config')
+    açiklama = forms.CharField(widget=forms.Textarea)
 
     class Meta:
         model = Event
@@ -214,9 +214,9 @@ class ProfileUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['email'].initial = self.instance.user.email
+        self.initial['email'] = self.instance.user.email
         self.fields['email'].label = 'E-Posta Adresi'
-        self.fields['username'].initial = self.instance.user.username
+        self.initial['username'] = self.instance.user.username
         self.fields['username'].label = 'Kullanıcı Adı'
         self.fields['new_password1'].label = 'Yeni Şifre'
         self.fields['new_password2'].label = 'Tekrar Şifre'
@@ -255,3 +255,4 @@ class ProfileUpdateForm(forms.ModelForm):
             profile.save()
 
         return profile
+
