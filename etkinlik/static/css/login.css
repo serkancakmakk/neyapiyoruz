@@ -7,7 +7,7 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     text-align: center;
     margin: 0 auto; /* Yatayda ortalamak için */
-    margin-top: 100px; /* İstediğiniz boşluğa göre ayarlayabilirsiniz */
+    margin-top: 80px; /* İstediğiniz boşluğa göre ayarlayabilirsiniz */
 }
 
 .lock-icon {

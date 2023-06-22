@@ -12,13 +12,14 @@
     <div class="collapse navbar-collapse" id="navbarColor01">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="{% url 'home' year=current_year month=current_month|lower %}">Ne Yapıyoruz ?<span class="sr-only">(current)</span></a>
+                <a href = "{% url 'home' %}" class="nav-link">Ne Yapıyoruz ?</a>
+
               </li>
               <li class="nav-item active">
-                <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' year=current_year month=current_month|lower %}">Home <span class="sr-only">(current)</span></a>
+                {% comment %} <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' year=current_year month=current_month|lower %}">Home <span class="sr-only">(current)</span></a> {% endcomment %}
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'home' year=next_year month=next_month %}">{{next_month|title}} <span class="sr-only">(current)</span></a>
+                {% comment %} <a class="nav-link" href="{% url 'home' year=next_year month=next_month %}">{{next_month|title}} <span class="sr-only">(current)</span></a> {% endcomment %}
               </li>
         </li>
       </ul>

@@ -2,20 +2,91 @@
 {% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/alert.css' %}">
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}">
+
 <div class="row">
     <div class="col-12 col-md-8 col-sm-2">
-        <h1 class ="display-3">En son eklenen etkinlikler gelecek</h3></div>
+        <h1 class ="display-3">Katılabileceğiniz etkinlikler
+        
+        </h1>
+        {% if events %}
+          <ul>
+            {% for event in events %}
+            <h4>
+              <a href = "{%url 'eventdetail' event.slug %}">{{ event.ad }}</a>
+            <h4>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>Hiç etkinlik yok.</p>
+        {% endif %}
+      </div>
+        
         <div class="col-6 col-md-4 col-sm-4">
         <br/>
+
         <center>
-        <h1> <small>Merhaba</small> {{request.user.username}}!
-           <h2>Bugün {{day}} {{ month }} {{ year }}</h2></h1>
-           <br>
-    Şuan {{time}}<br>
-    {{cal|safe}}<hr>
-        </center>
-    </div>
-  </div>
+        <h1> <small>Merhaba</small> {{request.user.username}}!</h1>
+        <h2>Bugün {{ day }} {{ month }} {{ year }}</h2>
+        
+        <script>
+          function selectDate() {
+              // Seçilen tarihi al
+              var selectedDate = document.getElementById("datepicker").value;
+      
+              // Tarih objesine dönüştür
+              var dateObj = new Date(selectedDate);
+      
+              // Gün, Ay ve Yıl bilgilerini al
+              var day = dateObj.getDate();
+              var month = dateObj.getMonth() + 1; // JavaScript'te aylar 0-11 arasında indekslenir, bu yüzden +1 ekleyerek düzeltiyoruz
+              var year = dateObj.getFullYear();
+      
+              // Ay adını almak için yerel dil ayarını kullanabilirsiniz
+              var monthNames = new Intl.DateTimeFormat('tr-TR', { month: 'long' }).format;
+              var monthName = monthNames(new Date(year, month - 1, 1));
+      
+              // Django views'ına yönlendir
+              var newURL = "/gundetay/" + day + "-" + monthName + "-" + year + "/";
+              window.location.href = newURL;
+          }
+      </script>
+      
+      
+        
+        <table>
+          <tr>
+            <th>Paz</th>
+            <th>Pts</th>
+            <th>Sal</th>
+            <th>Çar</th>
+            <th>Per</th>
+            <th>Cum</th>
+            <th>Cts</th>
+          </tr>
+          {% for week in calendar %}
+          <tr>
+            {% for day in week %}
+              {% if day == 0 %}
+                <td></td>
+              {% else %}
+                <td class="{% if day != current_day %}day-cell {% else %} current-day{% endif %}">
+                  <a href="/gundetay/{{ day }}-{{ month }}-{{ year }}">{{ day }}
+                </td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+          <tr>
+            <td colspan="7"></td>
+          </tr>
+        {% endfor %}
+        </table>
+        <small> Tarih Seç </small>
+        <br/>
+        <input type="date" id="datepicker">
+        <button class="btn btn-primary" onclick="selectDate()">Seç</button>
+        
+  
   <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">

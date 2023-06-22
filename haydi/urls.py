@@ -43,6 +43,14 @@ path('olumlu_oy/<int:pk>/', views.olumlu_oy, name='olumlu_oy'),
 path('olumsuz_oy/<int:pk>/', views.olumsuz_oy, name='olumsuz_oy'),
 path('mekan_begeni_durumu/<int:pk>/', views.mekan_begeni_durumu, name='mekan_begeni_durumu'),
 path('bildirim_acildi/', views.bildirim_acildi, name='bildirim_acildi'),
+path('home', views.home, name='home'),
+path('gundetay/<int:day>-<str:month>-<int:year>/', views.gundetay, name='gundetay'),
+# path('gundetay/', views.gundetay, name='gundetay'),
+# path('gundetay/<str:selected_date>/', views.gundetay_selected, name='gundetay_selected'),
+
+
+
+
 
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

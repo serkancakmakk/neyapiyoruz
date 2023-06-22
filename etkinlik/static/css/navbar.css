@@ -126,12 +126,6 @@ img {
         padding: 20px 10px
     }
 }
-
-.current-day {
-    border: 2px solid red;
-    border-radius: 50%;
-    display: inline-block;
-}
 /* 
 #yeretkinlik:hover {
     transform: scale(1.2);
@@ -321,6 +315,7 @@ img {
   }
   .table.user-list th:last-child {
     display: table-cell;
+}
 }
 
 /* @media screen and (max-width: 768px) {

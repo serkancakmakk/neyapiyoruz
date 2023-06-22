@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% if etkinlikler %}
+  <link rel="stylesheet" href="{% static 'css/pagination.css' %}">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm">
+        <h3>Var olan Etkinlikler:</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Adı</th>
+              <th scope="col">Mekan</th>
+              <th scope="col">Yönetici</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {% for etkinlik in sayfa %}
+                <th scope="row">
+                  <a href="{% url 'eventdetail' etkinlik.slug %}">
+                    <i class="fa-solid fa-book"></i>
+                  </a>
+                </th>
+                <td>{{etkinlik.ad|slice:10}}</td>
+                <td>{{etkinlik.mekan}}</td>
+                <td>{{etkinlik.yönetici}}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4">Herhangi bir etkinlik bulunmuyor.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="center">
+          <div class="pagination">
+            {% if sayfa.has_previous %}
+              <a href="?sayfa={{ sayfa.previous_page_number }}">&laquo;</a>
+            {% endif %}
+            {% for num in sayfa.paginator.page_range %}
+              {% if num == sayfa.number %}
+                <a href="#" class="active">{{ num }}</a>
+              {% else %}
+                <a href="?sayfa={{ num }}">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+            {% if sayfa.has_next %}
+              <a href="?sayfa={{ sayfa.next_page_number }}">&raquo;</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-sm">
+        <h3>Oluşturduğu Etkinlikler:</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Adı</th>
+              <th scope="col">Mekan</th>
+              <th scope="col">Yönetici</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for etkinlik in olusturdugu_sayfa %}
+              <tr>
+                <th scope="row">
+                  <a href="{% url 'eventdetail' etkinlik.slug %}">
+                    <i class="fa-solid fa-book"></i>
+                  </a>
+                </th>
+                <td>{{etkinlik.ad|slice:10}}</td>
+                <td>{{ etkinlik.mekan }}</td>
+                <td>{{ etkinlik.yönetici }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4">Herhangi bir etkinlik bulunmuyor.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="center">
+          <div class="pagination">
+            {% if olusturdugu_sayfa.has_previous %}
+              <a href="?sayfa={{ olusturdugu_sayfa.previous_page_number }}">&laquo;</a>
+            {% endif %}
+            {% for num in olusturdugu_sayfa.paginator.page_range %}
+              {% if num == olusturdugu_sayfa.number %}
+                <a href="#" class="active">{{ num }}</a>
+              {% else %}
+                <a href="?olusturdugu_sayfa={{ num }}">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+            {% if olusturdugu_sayfa.has_next %}
+              <a href="?olusturdugu_sayfa={{ olusturdugu_sayfa.next_page_number }}">&raquo;</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-sm">
+        <h3>Katıldığı Etkinlikler:</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Adı</th>
+              <th scope="col">Mekan</th>
+              <th scope="col">Yönetici</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for etkinlik in katildigi_sayfa %}
+              <tr>
+                <th scope="row">
+                  <a href="{% url 'eventdetail' etkinlik.slug %}">
+                    <i class="fa-solid fa-book"></i>
+                  </a>
+                </th>
+                <td>{{etkinlik.ad|slice:10}}</td>
+                <td>{{ etkinlik.mekan }}</td>
+                <td>{{ etkinlik.yönetici }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4">Herhangi bir etkinlik bulunmuyor.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="center">
+          <div class="pagination">
+            {% if katildigi_sayfa.has_previous %}
+              <a href="?katildigi_sayfa={{ katildigi_sayfa.previous_page_number }}">&laquo;</a>
+            {% endif %}
+            {% for num in katildigi_sayfa.paginator.page_range %}
+              {% if num == katildigi_sayfa.number %}
+                <a href="#" class="active">{{ num }}</a>
+              {% else %}
+                <a href="?katildigi_sayfa={{ num }}">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+            {% if katildigi_sayfa.has_next %}
+              <a href="?katildigi_sayfa={{ katildigi_sayfa.next_page_number }}">&raquo;</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="container">
+    <div class="row">
+      <div class="col-lg">
+        <h1 class="display-4">Bugün Takvimin Boş Gibi Görünüyor</h1>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

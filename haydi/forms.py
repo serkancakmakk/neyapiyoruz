@@ -5,6 +5,8 @@ from django import forms
 from django.forms import widgets
 from django.forms import ModelForm
 from cities_light.models import Region, SubRegion
+
+from .widget import CalendarWidget
 from .models import Profile, Mekan,Event, Yorum, YorumCevap
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -255,4 +257,9 @@ class ProfileUpdateForm(forms.ModelForm):
             profile.save()
 
         return profile
+
+from django import forms
+
+class MyForm(forms.Form):
+   date = forms.DateField(widget=forms.TextInput(attrs={'class': 'datepicker'}))
 

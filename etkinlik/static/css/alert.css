@@ -24,8 +24,19 @@
   #yorumyap{
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 17px;
+
   }
   #yorumyap:hover {
     font-weight: bold;
   }
+  .etkinlik-ad {
+    display: inline-block;
+    max-height: 1.2em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   
+  .etkinlik-ad:hover {
+    max-height: none;
+  }

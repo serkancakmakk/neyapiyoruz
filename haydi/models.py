@@ -52,7 +52,7 @@ class Mekan(models.Model):
         return self.adi
 
 class Event(models.Model):
-    ad = models.CharField('Etkinlik Adı', max_length=120)
+    ad = models.CharField('Etkinlik Adı', max_length=50)
     baslik = models.CharField('Baslik', max_length=50, null=True, blank=True)
     slug = models.SlugField(unique=True, max_length=100, null=True, blank=True)
     saat = models.TimeField('Saat', null=False, blank=False)

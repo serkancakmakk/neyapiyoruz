@@ -3,7 +3,7 @@ import time
 from django.shortcuts import redirect, render
 import locale
 import calendar
-from .forms import CevapForm, EtkinlikUpdateForm, MekanUpdateForm, ProfileUpdateForm, RegistrationForm, YorumForm
+from .forms import CevapForm, EtkinlikUpdateForm, MekanUpdateForm, MyForm, ProfileUpdateForm, RegistrationForm, YorumForm
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from calendar import HTMLCalendar
@@ -81,24 +81,19 @@ def mekanekle(request, year=None, month=None):
 
 
     
-def create_calendar(year, month):#iki viewsda da aynısnı yapmamak için ayrı bir fonksiyon tanımladım
-    # Türkçe ay adını ayarlama
+def create_calendar(year, month):
     locale.setlocale(locale.LC_ALL, 'tr_TR.UTF-8')
     month = month.capitalize()
-    # Ayları isimden sayıya dönüştür
-    month_number = list(calendar.month_name).index(month)
-    month_number = int(month_number)
+    month_names = list(calendar.month_name)
+    month_number = month_names.index(month) if month in month_names else 1
 
-    # Takvimi oluştur
-    cal = calendar.HTMLCalendar().formatmonth(year, month_number)
+    cal = []
 
-    # Şimdiki yılı ve saati getir
     now = datetime.now()
     current_year = now.year
-    time = now.strftime('%I:%M:%S')
-    day = now.day
+    current_month = calendar.month_name[now.month]
+    current_day = now.day
 
-    # Bir sonraki ayın adını ve yılını hesapla
     if month_number == 12:
         next_month_number = 1
         next_year = year + 1
@@ -106,24 +101,20 @@ def create_calendar(year, month):#iki viewsda da aynısnı yapmamak için ayrı 
         next_month_number = month_number + 1
         next_year = year
 
-    current_month = calendar.month_name[now.month]
-    next_month = calendar.month_name[next_month_number]
+    # Takvim verilerini oluştur
+    cal = calendar.monthcalendar(year, month_number)
 
     return {
-
         "year": year,
-        "day": day,
         "month": month,
-        "current_month": current_month,
         "month_number": month_number,
-        "cal": cal,
-        "now": now,
+        "current_month": current_month,
         "current_year": current_year,
-        "time": time,
-        "next_month": next_month.lower(),
+        "current_day": current_day,
+        "cal": cal,
+        "next_month": calendar.month_name[next_month_number].lower(),
         "next_year": next_year,
     }
-
 def yer_listesi(request,year=None, month=None):
     if year is None:
         year = datetime.now().year
@@ -201,22 +192,45 @@ def eventdetail(request, slug, year=None, month=None):
 
 
 
-@login_required
+
 def home(request, year=None, month=None):
-    # Varsayılan olarak geçerli yıl ve ayı ata
     if year is None:
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
-    bildirimler = Bildirim.objects.filter(bildirim_alani=request.user.profile).order_by('-olusturulma_tarihi')
-    data = create_calendar(year, month)
+    form = MyForm()
+    calendar_data = create_calendar(year, month)
+    day = calendar_data['current_day']  # Güncel günü alın
+    now = datetime.now()
+    current_day = now.day
+    if request.user.is_authenticated:
+        bildirimler = Bildirim.objects.filter(bildirim_alani=request.user.profile).order_by('-olusturulma_tarihi')
+        etkinlikler = Event.objects.all()
+        sehirler = Region.objects.all()[:10]
+    else:
+        bildirimler = None
+        etkinlikler = None
+        sehirler = None
+        
+    context = {
+        'current_day': current_day,
+        'calendar': calendar_data['cal'],
+        'year': calendar_data['year'],
+        'month': calendar_data['month'],
+        'day': day,  # Güncel günü context'e ekle
+        'bildirimler': bildirimler,
+        'events': etkinlikler,
+        'sehirler': sehirler,
+        'form': form,
+    }
+    
+    return render(request, 'home.html', context)
 
-    # Şehirleri sorgula ve context'e ekle
-    sehirler = Region.objects.all()[:10]
-    data["sehirler"] = sehirler
-    data["bildirimler"] = bildirimler
+    
 
-    return render(request, 'home.html', data)
+    return render(request, 'home.html', context)
+
+
 
 
 from django.db.models import Q
@@ -275,7 +289,7 @@ def etkinlik_sil(request, slug):
     return redirect('eventdetail', slug=slug)
 
 
-@login_required        
+
 
 @login_required  # Kullanıcının oturum açmış olması gerektiğini kontrol etmek için kullanabilirsiniz
 def etkinlik_ekle(request, year=None, month=None):
@@ -512,33 +526,37 @@ def show_profile(request, username, year=None, month=None):
 
 
 
-def login_view(request,year=None,month=None):
+from django.contrib.auth import login as auth_login
+from django.shortcuts import redirect
+
+def login_view(request, year=None, month=None):
     if year is None:
         year = datetime.now().year
     if month is None:
         month = datetime.now().strftime('%B')
-        data = create_calendar(year, month)
+    data = create_calendar(year, month)
     user = request.user
-    if user.is_authenticated: #Kullanıcı giriş yapmış ve tekrar login olmaya çalışırsa logout edilir.
-        
+
+    if user.is_authenticated: 
         return redirect('logout')
     else:
         if request.method == 'POST':
-            
             username = request.POST.get('username')
             password = request.POST.get('password')
             user = authenticate(request, username=username, password=password)
             if user is not None:
-                login(request, user)
-                if user is not None:
-                    if hasattr(user, 'profile'):
-                        return redirect('home')
-                    else:
-                        return redirect('update_profile')
+                auth_login(request, user)
+
+                if hasattr(user, 'profile'):
+                    return redirect('home')
+                else:
+                    Profile.objects.create(user=user)  # Profil oluştur
+                    return redirect('update_profile')
             else:
                 messages.error(request, 'Kullanıcı adı veya şifre yanlış.')
-    
+
     return render(request, 'login.html', data)
+
 def my_profile(request, year=None, month=None):
     if year is None:
         year = datetime.now().year
@@ -930,3 +948,55 @@ def mekan_begeni_durumu(request, pk):
         return JsonResponse({'durum': 'disliked'})
     else:
         return JsonResponse({'durum': 'none'})
+from django.shortcuts import render
+# def gundetay(request):
+#     selected_date = request.GET.get('selected_date')
+#     return redirect('gundetay_selected', selected_date=selected_date)
+# from django.shortcuts import render
+
+from datetime import datetime
+
+def gundetay(request, day, month, year):
+    # Tarihi parçalara ayırma
+    day = int(day)
+    year = int(year)
+    # Ayı dize olarak kullanma
+    selected_date = datetime.strptime(month, '%B')
+    month = selected_date.month
+    # Etkinlikleri tarihlerine göre filtreleme
+    selected_date = datetime(year, month, day)
+    etkinlikler = Event.objects.filter(gün=selected_date)
+    etkinlik_sayisi = 3
+    #tüm etkinlikler için paginatörü ayarla
+    paginatör = Paginator(etkinlikler, etkinlik_sayisi)
+    sayfa_numarasi = request.GET.get('sayfa')  # URL parametresinden sayfa numarasını alın
+    sayfa = paginatör.get_page(sayfa_numarasi)
+    #tüm etkinlikler için paginatörü ayarla
+    # Kullanıcının ilişkilendirildiği profilü al
+    profile = request.user.profile
+    # Katıldığı etkinlikleri filtreleme
+    katildigi_etkinlikler = etkinlikler.filter(katilimcilar=request.user)
+    tüm_etkinlikler = etkinlikler.filter(gün=selected_date)
+    olusturdugu_etkinlikler = etkinlikler.filter(yönetici=request.user)
+    # Oluşturduğu etkinlikleri filtreleme
+    
+    paginatörkatildigi = Paginator(katildigi_etkinlikler, etkinlik_sayisi)
+    katildigi_sayfa_numarasi = request.GET.get('katildigi_sayfa'),
+
+    paginatörolusturdugu = Paginator(olusturdugu_etkinlikler, etkinlik_sayisi)
+    olusturdugu_sayfa_numarasi = request.GET.get('olusturdugu_sayfa')
+    
+    katildigi_sayfa = paginatörkatildigi.get_page(katildigi_sayfa_numarasi)
+    olusturdugu_sayfa = paginatörolusturdugu.get_page(olusturdugu_sayfa_numarasi)
+    context = {
+        'katildigi_sayfa': katildigi_sayfa,
+        'olusturdugu_sayfa': olusturdugu_sayfa,
+        'sayfa': sayfa,
+        'selected_date': selected_date,
+        'etkinlikler': etkinlikler,
+        'katildigi_etkinlikler': katildigi_etkinlikler,
+        'olusturdugu_etkinlikler': olusturdugu_etkinlikler,
+        'tüm_etkinlikler':tüm_etkinlikler,
+    }
+
+    return render(request, 'gun_detay.html', context)
