@@ -11,9 +11,7 @@
       {% else %}
           
       {% endif %}
-      {% for bildirim in request.user.profile.bildirimler1.all %}
-    <p>{{ bildirim.bildirim }}</p>
-{% endfor %}
+      
         </div><!-- End d-flex -->
       </div><!-- End col-md-4 -->
       <div class="col-md-8"><!-- Start col-md-8 -->
@@ -30,10 +28,8 @@
             <li class="list-group-item"><i class="mdi mdi-account-plus font-size-15 align-middle pe-2 text-primary"> </i><strong>Katıldığınız Etkinlikler</strong> <span class="badge badge-info">{{ katildigi_etkinlikler.count }}</span></li>
             <li class="list-group-item"><i class="mdi mdi-account-edit font-size-15 align-middle pe-2 text-primary"> </i><strong>Oluşturduğunuz Etkinlikler</strong> <span class="badge badge-info">{{ olusturdugu_etkinlikler.count }}</span></li>
           </ul>
-          <div class="d-grid gap-2 mt-4"><!-- Start d-grid-gap -->
             <a href="{% url 'update_profile' %}" class="btn btn-primary">Güncelle</a>
             <button type="button" class="btn btn-primary">Contact</button>
-          </div><!-- End d-grid-gap -->
         </div><!-- End card-body -->
       </div><!-- End col-md-8 -->
     </div><!-- End row g-0 -->

@@ -61,7 +61,6 @@ class Event(models.Model):
     katilimci_kontrol = models.BooleanField(default=False)
     kontenjan = models.PositiveIntegerField(default=0,null=True,blank=True)
     mekan = models.ForeignKey(Mekan, blank=True, null=True,related_name='etkinlikler', on_delete=models.CASCADE)
-    # Diğer alanlar...
     açiklama = RichTextField()
     yönetici = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='yönetici_event_set')
     silindi = models.BooleanField(default=False)
@@ -115,7 +114,7 @@ class Profile(models.Model):
     olusturdugu_etkinlikler = models.ManyToManyField(Event, related_name='olusturan_profil', blank=True)
     bildirimler = models.ManyToManyField('Bildirim', related_name='bildirim_alani1', blank=True,null=True)
     bildirim_sayisi = models.PositiveIntegerField(default = 0 ,null=True,blank=True,)
-
+    engelli_listesi = models.ManyToManyField(User,null=True,blank=True,symmetrical=False,related_name='engelli')
 
     @property
     def username(self):
@@ -131,6 +130,7 @@ class Profile(models.Model):
 
     def get_katildigi_etkinlik_sayisi(self):
         return self.katildigi_etkinlikler.count()
+    
 class Bildirim(models.Model):
     etkinlik = models.ForeignKey(Event, on_delete=models.DO_NOTHING, null=True, blank=True)
     etkilesim = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)

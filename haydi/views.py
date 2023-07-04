@@ -175,10 +175,15 @@ def eventdetail(request, slug, year=None, month=None):
         sayfa = paginatör.get_page(sayfa_numarasi)
         katilimcilar = etkinlik.katilimcilar.all()
         son_yorumlar = yorumlar.order_by('-id')[:2]
+        engellendin = etkinlik.yönetici.profile.engelli_listesi.filter(pk=request.user.pk).exists()
+        
 
         if user.is_authenticated:
             if etkinlik.silindi:
                 return render(request, 'etkinlik/etkinlik_silindi.html', {'etkinlik': etkinlik, **data})
+            if engellendin:
+                messages.success(request,'Yönetici sizi engelledi bu etkinliği görüntüleyemezsiniz')
+                return render(request, 'home.html')
             else:
                 return render(request, 'etkinlik/eventdetail.html', {'etkinlik': etkinlik, 'katilimcilar': katilimcilar,
                                                                      'profile': profile, 'form': form,
@@ -189,10 +194,7 @@ def eventdetail(request, slug, year=None, month=None):
         else:
             return redirect('login')
 
-
-
-
-
+@login_required
 def home(request, year=None, month=None):
     if year is None:
         year = datetime.now().year
@@ -203,14 +205,19 @@ def home(request, year=None, month=None):
     day = calendar_data['current_day']  # Güncel günü alın
     now = datetime.now()
     current_day = now.day
+
+
     if request.user.is_authenticated:
-        bildirimler = Bildirim.objects.filter(bildirim_alani=request.user.profile).order_by('-olusturulma_tarihi')
-        etkinlikler = Event.objects.all()
+        user = request.user
+        engellenenler = user.profile.engelli_listesi.values_list('pk', flat=True)
+        engellenen_profiller = Profile.objects.filter(user_id__in=engellenenler)
+        engellendigim_profiller = Profile.objects.filter(engelli_listesi=user)
+        etkinlikler = Event.objects.exclude(Q(yönetici__profile__in=engellenen_profiller) | Q(yönetici__profile__in=engellendigim_profiller))
         sehirler = Region.objects.all()[:10]
     else:
-        bildirimler = None
         etkinlikler = None
         sehirler = None
+
         
     context = {
         'current_day': current_day,
@@ -218,7 +225,6 @@ def home(request, year=None, month=None):
         'year': calendar_data['year'],
         'month': calendar_data['month'],
         'day': day,  # Güncel günü context'e ekle
-        'bildirimler': bildirimler,
         'events': etkinlikler,
         'sehirler': sehirler,
         'form': form,
@@ -226,9 +232,6 @@ def home(request, year=None, month=None):
     
     return render(request, 'home.html', context)
 
-    
-
-    return render(request, 'home.html', context)
 
 
 
@@ -386,8 +389,8 @@ def update_profile(request, year=None, month=None):
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)
-
-            return redirect('my_profile')
+            messages.success(request, "Şifre Başarıyla Değişti Tekrar Giriş Yapınız")
+            return redirect('home')
     else:
         form = ProfileUpdateForm(instance=event_user)
         password_form = PasswordChangeForm(request.user)
@@ -399,6 +402,7 @@ def update_profile(request, year=None, month=None):
 
 def katilimci_ol(request, slug):
     etkinlik = get_object_or_404(Event, slug=slug)
+    engellendin = etkinlik.yönetici.profile.engelli_listesi.filter(pk=request.user.pk).exists()
     katilimcilar = etkinlik.katilimcilar.all()
     now = datetime.now()
     user = request.user
@@ -409,6 +413,10 @@ def katilimci_ol(request, slug):
         messages.error(request, "Etkinlik yöneticisi sizsiniz")
         print('Yönetici Alanı Çalıştır')
     else:
+        if engellendin:
+            messages.error(request, "Etkinlik Yöneticisinin Engellenen Listesindesin Bu Etkinliğe Katılamazsın.")
+            return redirect('home')
+        
         if etkinlik.katilimci_kontrol == True:
             if kontenjan == 0:
                 messages.info(request, "Etkinlik Daha Fazla Katılımcı Kabul Etmiyor")
@@ -500,15 +508,22 @@ def show_profile(request, username, year=None, month=None):
 
     data = create_calendar(year, month)
     user = User.objects.get(username=username)
+    
+    if user == request.user:
+        return redirect('my_profile')
+    
     katildigi_etkinlikler = user.profile.katildigi_etkinlikler.all()
     katildigi_etkinlik_sayisi = katildigi_etkinlikler.count()
     olusturdugu_etkinlikler = user.profile.olusturdugu_etkinlikler.all()
     olusturdugu_etkinlik_sayisi = olusturdugu_etkinlikler.count()
     son_etkinlikler = olusturdugu_etkinlikler.order_by('-id')
     son_etkinliklerim = son_etkinlikler[:2]
-
+    engelli = request.user.profile.engelli_listesi.filter(pk=user.pk).exists()
+    engellendin = user.profile.engelli_listesi.filter(pk=request.user.pk).exists()
     context = {
         'user': user,
+        'engelli':engelli,
+        'engellendin':engellendin,
         'katildigi_etkinlikler': katildigi_etkinlikler,
         'katildigi_etkinlik_sayisi': katildigi_etkinlik_sayisi,
         'olusturdugu_etkinlikler': olusturdugu_etkinlikler,
@@ -516,11 +531,8 @@ def show_profile(request, username, year=None, month=None):
         'son_etkinliklerim': son_etkinliklerim
     }
 
-    context.update(data)  # data sözlüğünü context sözlüğüne güncelle
-
+    context.update(data)
     return render(request, 'profile/show_profile.html', context)
-
-
 
 
 
@@ -1000,3 +1012,29 @@ def gundetay(request, day, month, year):
     }
 
     return render(request, 'gun_detay.html', context)
+
+from django.shortcuts import redirect
+
+from django.shortcuts import redirect
+
+def engelle(request, pk):
+    user = request.user
+    engellenen = get_object_or_404(User, pk=pk)
+    username = engellenen.profile.username
+
+    if request.method == "POST":
+       if request.user.profile.engelli_listesi.filter(pk=engellenen.pk).exists():
+            user.profile.engelli_listesi.remove(engellenen.pk)
+            print('çalıştı engel kaldır')
+            return redirect('show_profile', username=username)
+            
+       else:
+            user.profile.engelli_listesi.add(engellenen.pk)
+            print('çalıştı')
+            return redirect('show_profile', username=username)
+    else:
+            return redirect('show_profile', username=username)
+
+        
+
+    

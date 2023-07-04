@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+{% if engellendin %}
 <div class="content"> <!-- Start Content -->
   <div class="card"><!-- Start Card -->
     <div class="row g-0"><!-- Start row g-0 -->
@@ -11,7 +12,39 @@
       </div><!-- End col-md-4 -->
       <div class="col-md-8"><!-- Start col-md-8 -->
         <div class="card-body"><!-- Start card-body -->
-          <h5 class="card-title">{{ user.profile.ad|title }} {{ user.profile.soyad|title }}</h5>
+          <p class="card-text"><strong class="btn btn-danger disabled">Kullanıcı Sizi Engelledi</strong></p>
+          <p class="card-text">@<small>{{user.username}}</small></p>
+          </div><!-- End d-grid-gap -->
+        </div><!-- End card-body -->
+      </div><!-- End col-md-8 -->
+    </div><!-- End row g-0 -->
+  </div><!-- End Card -->
+</div><!-- End Content -->
+<br/>
+{% else %}
+<div class="content"> <!-- Start Content -->
+  <div class="card"><!-- Start Card -->
+    <div class="row g-0"><!-- Start row g-0 -->
+      <div class="col-md-4"><!-- Start col-md-4 -->
+        <div class="d-flex align-items-center justify-content-center" style="height: 100%;"><!-- Start d-flex -->
+          {% comment %} <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start"> {% endcomment %}
+        </div><!-- End d-flex -->
+      </div><!-- End col-md-4 -->
+      <div class="col-md-8"><!-- Start col-md-8 -->
+        <div class="card-body"><!-- Start card-body -->
+
+
+          <h5 class="card-title">{{ user.profile.ad|title }} {{ user.profile.soyad|title }}</h5> 
+          {% if engellendin %}
+          Bu kullanıcı sizi engelledi
+          {% else %}
+          <form method="POST" action="{% url 'engelle' user.pk %}">
+            {% csrf_token %}
+            <button type="submit" id="engel_btn" class="btn btn-{% if engelli %}success{% else %}danger{% endif %}"><i class="fa-solid fa-user-gear"></i>{% if engelli %} Engeli Kaldır{% else %} Engelle {% endif %}</button>
+          </form>
+          {% endif %}
+          
+
           <p class="card-text">@<small>{{user.username}}</small></p>
           <ul class="list-group list-group-flush">
             {% if user.profile.telefon != None %}
@@ -57,4 +90,5 @@
     {% endfor %}
   </div>
 </div>
+{% endif %}
 {% endblock %}

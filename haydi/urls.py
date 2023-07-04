@@ -45,6 +45,7 @@ path('mekan_begeni_durumu/<int:pk>/', views.mekan_begeni_durumu, name='mekan_beg
 path('bildirim_acildi/', views.bildirim_acildi, name='bildirim_acildi'),
 path('home', views.home, name='home'),
 path('gundetay/<int:day>-<str:month>-<int:year>/', views.gundetay, name='gundetay'),
+path('engelle/<int:pk>', views.engelle, name='engelle'),
 # path('gundetay/', views.gundetay, name='gundetay'),
 # path('gundetay/<str:selected_date>/', views.gundetay_selected, name='gundetay_selected'),
 

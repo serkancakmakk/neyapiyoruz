@@ -1,5 +1,5 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-cyan">
+<nav class="navbar navbar-expand-lg navbar-dark bg-cyan" id="navbar">
     <a class="navbar-brand" href="{%url 'home' %}">
         <div class="logo-container">
           <img src="{% static 'icon.png' %}" alt="Logo" class="logo-img">
@@ -124,7 +124,7 @@
         <form class="form-inline my-2 my-lg-0" method="POST" action="{%url 'arama_sonuclari' %}">
           {% csrf_token %}
           <input class="form-control mr-sm-2" type="text" placeholder="Search" name="searched">
-          <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
+          <button class="btn btn-secondary my-2 my-sm-0" type="submit">Ara</button>
         </form>
 
       </ul>

@@ -58,7 +58,7 @@
                     <p class="card-text">{{ etkinlik.mekan }}</p>
                     <p class="card-text">{{ etkinlik.gün|date:"F j, Y" }}</p>
                     <p class="card-text">{{ etkinlik.saat|time:"H:i" }}</p>
-                    <a href="#" class="btn btn-primary disabled">{{ etkinlik.yönetici }}</a>
+                    <a href="{% url 'show_profile' etkinlik.yönetici.username %}" id="yöneticibtn" class="btn btn-primary">{{ etkinlik.yönetici }}</a>
                 </div>
                 <!-- End Card Body -->
             </div>

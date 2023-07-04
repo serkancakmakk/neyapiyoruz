@@ -3,16 +3,17 @@
 {% block content %}
 
 <link rel="stylesheet" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" href="{% static 'css/alert.css' %}">
     <title>Login</title>
 
     <div class="login-container">
         <img src="{% static 'lock.png' %}" alt="Lock Icon" class="lock-icon">
         <form method="post">
             {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-danger" role="alert">
-            {{message}}
-          </div>
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
         {% endfor %}
 {% endif %}
             {% csrf_token %}
@@ -26,7 +27,9 @@
                   </a>
             </div>
             
-            <button type="submit" class="btn" id="loginbtn">Login</button>
+            <button type="submit" class="btn" id="loginbtn">
+                Giriş Yap
+            </button>
             
         </form>
     </div>

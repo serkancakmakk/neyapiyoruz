@@ -23,6 +23,12 @@
   }
 .navbar {
     background-color: #428cc9;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 9999; /* sNavbar'ın diğer öğelerin üzerinde görünmesini sağlamak için gerekli bir z-index değeri */
+      /* Diğer stil özelliklerini buraya ekleyebilirsiniz */
+    }
 }
 .nav-item.active{
   font-weight: bold;
@@ -206,12 +212,13 @@ img {
 #etkinlikcard a{
     color: #000000;
 }
-.navbar {
-  position: fixed;
+#navbar {
+  background-color: #428cc9;
+  position: sticky;
   top: 0;
   width: 100%;
-  z-index: 100;
-  /* background-color: transparent; */
+  z-index: 10;
+  margin-bottom: 50px;
 }
 
 .navbar.scrolled {
@@ -368,4 +375,19 @@ img {
   width: 2%;
   max-width: 30px; /* İstenilen genişlik değeri */
   height: 20px; /* İstenilen yükseklik değeri */
+}
+
+#engel_btn{
+  float: right;
+  margin-top: 0px;
+}
+#yöneticibtn {
+  float: right;
+  background-color:crimson;
+  border-color: crimson;
+}
+#yöneticibtn:hover{
+  background-color:rgb(197, 101, 120);
+  border-color: rgb(197, 101, 120);
+
 }

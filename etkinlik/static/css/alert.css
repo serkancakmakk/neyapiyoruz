@@ -5,12 +5,12 @@
   }
   
   .alert-danger {
-    background-color: #f8d7da;
+    background-color: #ffffff;
     border-color: #f5c6cb;
-    color: #721c24;
+    color: #e60017;
   }
   .alert-error {
-    background-color: #cb404e; /* Daha koyu bir arka plan rengi */
+    background-color: rgba(255, 0, 0, 0.782); /* Daha koyu bir arka plan rengi */
     border-color: #6c1c21; /* Daha koyu bir kenarlık rengi */
     color: #fff; /* Daha koyu bir metin rengi */
   }
