@@ -389,8 +389,7 @@ def update_profile(request, year=None, month=None):
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)
-            messages.success(request, "Şifre Başarıyla Değişti Tekrar Giriş Yapınız")
-            return redirect('home')
+            return redirect('update_profile')
     else:
         form = ProfileUpdateForm(instance=event_user)
         password_form = PasswordChangeForm(request.user)
@@ -511,7 +510,7 @@ def show_profile(request, username, year=None, month=None):
     
     if user == request.user:
         return redirect('my_profile')
-    
+   
     katildigi_etkinlikler = user.profile.katildigi_etkinlikler.all()
     katildigi_etkinlik_sayisi = katildigi_etkinlikler.count()
     olusturdugu_etkinlikler = user.profile.olusturdugu_etkinlikler.all()
@@ -520,9 +519,12 @@ def show_profile(request, username, year=None, month=None):
     son_etkinliklerim = son_etkinlikler[:2]
     engelli = request.user.profile.engelli_listesi.filter(pk=user.pk).exists()
     engellendin = user.profile.engelli_listesi.filter(pk=request.user.pk).exists()
+    takipte = request.user.profile.takip_ettiklerim.filter(pk=user.pk).exists()
+
     context = {
         'user': user,
         'engelli':engelli,
+        'takipte':takipte,
         'engellendin':engellendin,
         'katildigi_etkinlikler': katildigi_etkinlikler,
         'katildigi_etkinlik_sayisi': katildigi_etkinlik_sayisi,
@@ -576,17 +578,20 @@ def my_profile(request, year=None, month=None):
         month = datetime.now().strftime('%B')
     data = create_calendar(year, month)
     user = request.user
+
     katildigi_etkinlikler = user.profile.katildigi_etkinlikler.all()
     katildigi_etkinlik_sayisi = katildigi_etkinlikler.count()
     olusturdugu_etkinlikler = user.profile.olusturdugu_etkinlikler.all()
     olusturdugu_etkinlik_sayisi = olusturdugu_etkinlikler.count()
     son_etkinlikler = olusturdugu_etkinlikler.order_by('-id')
     son_etkinliklerim = son_etkinlikler[:2]
-    olusturdugu_etkinlik_id_list = olusturdugu_etkinlikler.values_list('id', flat=True)
-    bildirimler = Bildirim.objects.filter(etkinlik_id__in=olusturdugu_etkinlik_id_list).order_by('-olusturulma_tarihi')
+    takip_listesi = request.user.profile.takip_ettiklerim.all()
+    takipçi_listesi = request.user.profile.takipçiler.all()
+
     context = {
         'user': user,
-        'bildirimler':bildirimler,
+        'takip_listesi':takip_listesi,
+        'takipçi_listesi':takipçi_listesi,
         'katildigi_etkinlikler': katildigi_etkinlikler,
         'katildigi_etkinlik_sayisi': katildigi_etkinlik_sayisi,
         'olusturdugu_etkinlikler': olusturdugu_etkinlikler,
@@ -1020,8 +1025,9 @@ from django.shortcuts import redirect
 def engelle(request, pk):
     user = request.user
     engellenen = get_object_or_404(User, pk=pk)
+    takip_edilen = get_object_or_404(User,pk=pk)
     username = engellenen.profile.username
-
+    takipte = takip_edilen.profile.takipçiler.filter(pk=user.pk).exists()
     if request.method == "POST":
        if request.user.profile.engelli_listesi.filter(pk=engellenen.pk).exists():
             user.profile.engelli_listesi.remove(engellenen.pk)
@@ -1030,11 +1036,46 @@ def engelle(request, pk):
             
        else:
             user.profile.engelli_listesi.add(engellenen.pk)
+            user.profile.takip_ettiklerim.remove(takip_edilen.pk)
+            takip_edilen.profile.takipçiler.remove(user.pk)
             print('çalıştı')
             return redirect('show_profile', username=username)
     else:
             return redirect('show_profile', username=username)
-
+def takip_et(request,pk):
+    user = request.user
+    takip_edilen = get_object_or_404(User,pk=pk)
+    engellendin = takip_edilen.profile.engelli_listesi.filter(pk=request.user.pk).exists()
+    takipte = takip_edilen.profile.takipçiler.filter(pk=user.pk).exists()
+    username = takip_edilen.profile.username
+    if request.method == "POST":
+        if engellendin:
+            messages.error(request, "Kullanıcı sizi engelledi")
+        elif takipte:
+            bildirim = Bildirim.objects.get(user=takip_edilen, etkilesim=user)
+            bildirim.delete()
+            user.profile.takip_ettiklerim.remove(takip_edilen.pk)
+            takip_edilen.profile.takipçiler.remove(user.pk)
+            takip_edilen.profile.bildirim_sayisi -= 1 
+        else:
+            user.profile.takip_ettiklerim.add(takip_edilen.pk)
+            takip_edilen.profile.takipçiler.add(user.pk)
+            bildirim = Bildirim.objects.create(user=takip_edilen,etkilesim=user, bildirim_alani=takip_edilen.profile, bildirim=f"{user.username} adlı kullanıcı sizi takip etti.")
+            takip_edilen.profile.bildirimler.add(bildirim)
+            takip_edilen.profile.bildirim_sayisi += 1 
+            bildirim.save()
         
-
+        return redirect(request.META.get('HTTP_REFERER')) # Hangi sayfadan geldiysen ona yönlendiriyor
     
+    return HttpResponse()
+        
+def takipciyi_cikar(request,pk):
+    user = request.user
+    takip_eden = get_object_or_404(User,pk=pk)
+    if request.method == "POST":
+        user.profile.takipçiler.remove(takip_eden.pk)
+        takip_eden.profile.takip_ettiklerim.remove(user.pk)
+        user.profile.save()
+        return redirect('my_profile')
+    else:
+        pass

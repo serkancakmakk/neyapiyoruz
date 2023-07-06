@@ -115,7 +115,8 @@ class Profile(models.Model):
     bildirimler = models.ManyToManyField('Bildirim', related_name='bildirim_alani1', blank=True,null=True)
     bildirim_sayisi = models.PositiveIntegerField(default = 0 ,null=True,blank=True,)
     engelli_listesi = models.ManyToManyField(User,null=True,blank=True,symmetrical=False,related_name='engelli')
-
+    takip_ettiklerim = models.ManyToManyField(User,null=True,blank=True,symmetrical=False,related_name='takip_edilen')
+    takipçiler = models.ManyToManyField(User,null=True,blank=True,symmetrical=False,related_name='takipçilerim')
     @property
     def username(self):
         return self.user.username
@@ -132,6 +133,7 @@ class Profile(models.Model):
         return self.katildigi_etkinlikler.count()
     
 class Bildirim(models.Model):
+    user = models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True,blank=True,related_name='kullanici')
     etkinlik = models.ForeignKey(Event, on_delete=models.DO_NOTHING, null=True, blank=True)
     etkilesim = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     bildirim_alani = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True, related_name='bildirimler1')

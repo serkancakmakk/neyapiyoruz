@@ -206,7 +206,8 @@ from django.contrib.auth.forms import PasswordChangeForm
 class ProfileUpdateForm(forms.ModelForm):
     email = forms.EmailField()
     username = forms.CharField()
-    profile_img = forms.ImageField(widget=forms.ClearableFileInput(attrs={'multiple': False}), required=False)
+    profile_img = forms.ImageField(widget=forms.ClearableFileInput(attrs={'multiple': False, 'clearable': True}), required=False)
+    clear_profile_img = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     new_password1 = forms.CharField(widget=forms.PasswordInput, required=False)
     new_password2 = forms.CharField(widget=forms.PasswordInput, required=False)
 
@@ -227,6 +228,11 @@ class ProfileUpdateForm(forms.ModelForm):
         cleaned_data = super().clean()
         new_password1 = cleaned_data.get('new_password1')
         new_password2 = cleaned_data.get('new_password2')
+        cleaned_data = super().clean()
+        clear_profile_img = cleaned_data.get('clear_profile_img')
+
+        if clear_profile_img:
+         cleaned_data['profile_img'] = None
 
         if new_password1 and not new_password2:
             raise forms.ValidationError("Lütfen yeni şifreyi tekrar girin.")
@@ -254,10 +260,14 @@ class ProfileUpdateForm(forms.ModelForm):
         profile_img = self.cleaned_data.get('profile_img')
         if profile_img:
             profile.profile_img = profile_img
-            profile.save()
+
+        # Profil resmini temizleme işlemi
+        if self.cleaned_data.get('clear_profile_img'):
+            profile.profile_img = None
+
+        profile.save()
 
         return profile
-
 from django import forms
 
 class MyForm(forms.Form):

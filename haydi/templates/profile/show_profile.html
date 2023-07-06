@@ -7,7 +7,9 @@
     <div class="row g-0"><!-- Start row g-0 -->
       <div class="col-md-4"><!-- Start col-md-4 -->
         <div class="d-flex align-items-center justify-content-center" style="height: 100%;"><!-- Start d-flex -->
+          {% if user.profile.profile_img %}
           <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+          {% endif %}
         </div><!-- End d-flex -->
       </div><!-- End col-md-4 -->
       <div class="col-md-8"><!-- Start col-md-8 -->
@@ -27,7 +29,9 @@
     <div class="row g-0"><!-- Start row g-0 -->
       <div class="col-md-4"><!-- Start col-md-4 -->
         <div class="d-flex align-items-center justify-content-center" style="height: 100%;"><!-- Start d-flex -->
-          {% comment %} <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start"> {% endcomment %}
+          {% if user.profile.profile_img %}
+          <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+          {% endif %}
         </div><!-- End d-flex -->
       </div><!-- End col-md-4 -->
       <div class="col-md-8"><!-- Start col-md-8 -->
@@ -37,13 +41,24 @@
           <h5 class="card-title">{{ user.profile.ad|title }} {{ user.profile.soyad|title }}</h5> 
           {% if engellendin %}
           Bu kullanıcı sizi engelledi
-          {% else %}
-          <form method="POST" action="{% url 'engelle' user.pk %}">
-            {% csrf_token %}
-            <button type="submit" id="engel_btn" class="btn btn-{% if engelli %}success{% else %}danger{% endif %}"><i class="fa-solid fa-user-gear"></i>{% if engelli %} Engeli Kaldır{% else %} Engelle {% endif %}</button>
-          </form>
           {% endif %}
-          
+          <div>
+            <form method="POST" action="{% url 'engelle' user.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-{% if engelli %}success{% else %}danger{% endif %}">
+                <i class="fa-solid fa-user-gear"></i>{% if engelli %} Engeli Kaldır{% else %} Engelle {% endif %}
+              </button>
+            </form>
+            
+            {% if not engelli %}
+            <form method="POST" action="{% url 'takip_et' user.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success">
+                <i class="fa-solid fa-user-{% if takipte %}minus{% else %}plus{% endif %}"></i> {% if takipte %} Takibi Bırak {% else %} Takip Et {% endif %}
+              </button>
+            </form>
+            {% endif %}
+          </div>
 
           <p class="card-text">@<small>{{user.username}}</small></p>
           <ul class="list-group list-group-flush">
@@ -57,8 +72,6 @@
             <li class="list-group-item"><i class="mdi mdi-account-edit font-size-15 align-middle pe-2 text-primary"> </i><strong>Oluşturduğu Etkinlikler</strong> <span class="badge badge-info">{{ olusturdugu_etkinlikler.count }}</span></li>
           </ul>
           <div class="d-grid gap-2 mt-4"><!-- Start d-grid-gap -->
-            <a href="{% url 'update_profile' %}" class="btn btn-primary">Güncelle</a>
-            <button type="button" class="btn btn-primary">Contact</button>
           </div><!-- End d-grid-gap -->
         </div><!-- End card-body -->
       </div><!-- End col-md-8 -->

@@ -2,77 +2,86 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/update_profile.css' %}">
 <div class="container">
   <div class="row">
- 
-  <div class="col-8">
-  <form method="post" enctype="multipart/form-data" class="mx-auto">
-    {% csrf_token %}
-    <div class="row">
-      <div class="col-md-4">
-        <div class="form-group">
-          <label for="id_ad">Adınız</label>
-          <input type="text" value="{{ form.ad.value }}" class="form-control" name="ad" placeholder="Adınız">
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="form-group">
-          <label for="id_soyad">Soyadınız</label>
-          <input type="text" value="{{ form.soyad.value }}" class="form-control" name="soyad" placeholder="Soyadınız">
-        </div>
-      </div>
-      
-
-    <div class="row">
-      <div class="col-md-4">
-        <div class="form-group">
-          <label for="id_username">Kullanıcı Adınız</label>
-          <input type="text" value="{{ form.username.value }}" class="form-control" name="username" placeholder="Kullanıcı Adınız">
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="form-group">
-          <label for="id_email">Email Adresiniz</label>
-          <input type="email" value="{{ form.email.value }}" class="form-control" name="email" placeholder="Email Adresiniz">
-        </div>
-      </div>
-    </div>
-    <div class ="row">
-    <div class="col-md-4">
+    <div class="col-md-8 col-lg-4 order-md-2">
+        {% if user.profile.profile_img %}
+          <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+        {% else %}
+        yok
+        {% endif %}
       <div class="form-group">
-        <label for="id_telefon">Telefonunuz</label>
-        <input type="text" value="{{ form.telefon.value }}" class="form-control" name="telefon" placeholder="Telefonunuz">
+        <label for="id_profile_img">Profil Resmi</label>
+        <input type="file" class="form-control-file" id="id_profile_img" name="profile_img">
       </div>
+      <div class="form-group">
+        <p for="id_clear_profile_img" class="form-check-label center">Profil Resmini Kaldır
+          <input type="checkbox" id="id_clear_profile_img" name="clear_profile_img" class="form-check-input ml-4">
+        </p>
+      </div>
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </div>
+    
+    <div class="col-md-8 col-lg-8 order-md-1">
+      <form method="post" enctype="multipart/form-data" class="mx-auto">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_ad">Adınız</label>
+              <input type="text" value="{{ form.ad.value }}" class="form-control" name="ad" placeholder="Adınız">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_soyad">Soyadınız</label>
+              <input type="text" value="{{ form.soyad.value }}" class="form-control" name="soyad" placeholder="Soyadınız">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_username">Kullanıcı Adınız</label>
+              <input type="text" value="{{ form.username.value }}" class="form-control" name="username" placeholder="Kullanıcı Adınız">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_email">Email Adresiniz</label>
+              <input type="email" value="{{ form.email.value }}" class="form-control" name="email" placeholder="Email Adresiniz">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_telefon">Telefonunuz</label>
+              <input type="text" value="{{ form.telefon.value }}" class="form-control" name="telefon" placeholder="Telefonunuz">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_new_password1">Şifre</label>
+              <input type="password" class="form-control" id="id_new_password1" name="new_password1" placeholder="Şifre">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="id_new_password2">Şifre</label>
+              <input type="password" class="form-control" id="id_new_password2" name="new_password2" placeholder="Şifre">
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+      </form>
     </div>
   </div>
-    <div class="form-group">
-      <label for="id_profile_img">Profil Resmi</label>
-      <input type="file" class="form-control-file" id="id_profile_img" name="profile_img">
-    </div>
-    <div class="row">
-    <div class="col-md-4">
-      <div class="form-group">
-        <label for="id_new_password1">Şifre</label>
-        <input type="password" class="form-control" id="id_new_password1" name="new_password1" placeholder="Şifre">
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-4">
-      <div class="form-group">
-        <label for="id_new_password2">Şifre</label>
-        <input type="password" class="form-control" id="id_new_password2" name="new_password2" placeholder="Şifre">
-      </div>
-      
-    </div>
-  </div>
-    <button type="submit" class="btn btn-primary">Kaydet</button>
-  </form>
-  
 </div>
-
-</div>
-<div class="col-4">
-  <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
-  </div>
+</form>
 {% endblock %}

@@ -46,6 +46,9 @@ path('bildirim_acildi/', views.bildirim_acildi, name='bildirim_acildi'),
 path('home', views.home, name='home'),
 path('gundetay/<int:day>-<str:month>-<int:year>/', views.gundetay, name='gundetay'),
 path('engelle/<int:pk>', views.engelle, name='engelle'),
+path('takip_et/<int:pk>', views.takip_et, name='takip_et'),
+path('takipciyi_cikar/<int:pk>', views.takipciyi_cikar, name='takipciyi_cikar'),
+
 # path('gundetay/', views.gundetay, name='gundetay'),
 # path('gundetay/<str:selected_date>/', views.gundetay_selected, name='gundetay_selected'),
 
