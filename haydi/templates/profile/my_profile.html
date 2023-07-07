@@ -37,31 +37,25 @@
       </div><!-- End row g-0 -->
     </div><!-- End Card -->
     
-    <h1>
-      <center> 
-        Son Etkinliklerim
-      </center>
-    </h1>
-    
-    <div class="row">
-      <br/>
-      <div class="row justify-content-center">
-        {% for etkinlik in son_etkinliklerim %}
-        <div class="col-lg-6">
-          <div class="card" style="width: 18rem;">
-            <div class="card-body" style="height: 18rem;">
-              <h5 class="card-title">{{ etkinlik.ad }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">{{ etkinlik.saat }}</h6>
-              <p class="card-text">{{ etkinlik.açiklama|safe|truncatechars_html:20 }}</p>
-              <a href="{% url 'eventdetail' etkinlik.slug %}" class="card-link"><i class="fa-solid fa-feather"></i> Etkinlik Detay</a>
-              <a href="{% url 'yer_detay' etkinlik.mekan.pk %}" class="card-link"><i class="fa-solid fa-shop"></i> Yer Detay</a>
-            </div>
+    <h1 class="text-center">Son Etkinliklerim</h1>
+
+    <div class="row justify-content-center">
+      {% for etkinlik in son_etkinliklerim %}
+      <div class="col-lg-6 col-md-6 col-sm-12 mt-2 d-flex">
+        <div class="card" style="width: 18rem; height: 100%;">
+          <div class="card-body">
+            <h5 class="card-title">{{ etkinlik.ad }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{ etkinlik.saat }}</h6>
+            <p class="card-text">{{ etkinlik.açiklama|safe|truncatechars_html:20 }}</p>
+            <a href="{% url 'eventdetail' etkinlik.slug %}" class="card-link"><i class="fa-solid fa-feather"></i> Etkinlik Detay</a>
+            <a href="{% url 'yer_detay' etkinlik.mekan.pk %}" class="card-link"><i class="fa-solid fa-shop"></i> Yer Detay</a>
           </div>
-          <br>
         </div>
-        {% endfor %}
+        <br>
       </div>
+      {% endfor %}
     </div>
+    
   </div><!-- End Content -->
   
   <div class="col-lg-3 col-sm-8">
@@ -72,10 +66,10 @@
         </button>
       </li>
       
-      {% for takipci in takip_listesi %}
+      {% for takipci in sayfa %}
       <li class="list-group-item">
         <div class="d-flex align-items-center justify-content-between">
-          <a href="{% url 'show_profile' takipci.username %}">{{ takipci.username }}</a>
+          <a class="ml-2" href="{% url 'show_profile' takipci.username %}">{{ takipci.username }}</a>
           <form method="POST" action="{% url 'takip_et' takipci.pk %}">
             {% csrf_token %}
             <button type="submit" title="Çıkar" id="engel_btn" class="btn btn-link">
@@ -88,37 +82,16 @@
         <li class="list-group-item">Takip ettiğin kimse yok.</li>
       {% endfor %}
     </ul>
+    <div class="pagination">
+      {% if sayfa.has_previous %}
+        <a href="?sayfa={{ sayfa.previous_page_number }}"><i class="fa-solid fa-chevron-left"></i></a>
+      {% endif %}
+      
+      {% if sayfa.has_next %}
+        <a href="?sayfa={{ sayfa.next_page_number }}"><i class="fa-solid fa-chevron-right"></i></a>
+      {% endif %}
+    </div>
   </div>
-  <script>
-    // Formun submit işlemi üzerine çalışacak olan JavaScript kodu
-    $('#takipEtForm').submit(function(event) {
-      event.preventDefault(); // Formun normal submit işlemini engelle
-  
-      var form = $(this);
-      var url = form.attr('action');
-      var formData = form.serialize(); // Form verilerini al
-  
-      $.ajax({
-        type: 'POST',
-        url: url,
-        data: formData,
-        beforeSend: function(xhr) {
-          xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-        },
-        success: function(response) {
-          // Başarılı istek durumunda yapılacak işlemler
-          // Örneğin, butonu güncelleyebilirsiniz
-          var takipBtn = $('#engel_btn');
-          takipBtn.text('Takibi Bırakıldı');
-          takipBtn.prop('disabled', true);
-        },
-        error: function(xhr, textStatus, error) {
-          // Hata durumunda yapılacak işlemler
-          console.log(xhr.responseText);
-        }
-      });
-    });
-  </script>
   <div class="col-lg-3 col-sm-8">
     
     <ul class="list-group">
@@ -151,5 +124,7 @@
     </ul>
   </div>
 </div>
+
+
 
 {% endblock %}

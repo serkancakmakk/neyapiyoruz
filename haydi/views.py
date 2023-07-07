@@ -212,7 +212,16 @@ def home(request, year=None, month=None):
         engellenenler = user.profile.engelli_listesi.values_list('pk', flat=True)
         engellenen_profiller = Profile.objects.filter(user_id__in=engellenenler)
         engellendigim_profiller = Profile.objects.filter(engelli_listesi=user)
-        etkinlikler = Event.objects.exclude(Q(yönetici__profile__in=engellenen_profiller) | Q(yönetici__profile__in=engellendigim_profiller))
+        takip_ettiklerim = request.user.profile.takip_ettiklerim.all()
+
+        takip_ettiklerim = request.user.profile.takip_ettiklerim.all()
+
+        etkinlikler = Event.objects.exclude(
+            Q(yönetici__profile__in=engellenen_profiller) |
+            Q(yönetici__profile__in=engellendigim_profiller)
+        ).filter(
+            Q(yönetici__in=takip_ettiklerim)
+        )
         sehirler = Region.objects.all()[:10]
     else:
         etkinlikler = None
@@ -587,9 +596,14 @@ def my_profile(request, year=None, month=None):
     son_etkinliklerim = son_etkinlikler[:2]
     takip_listesi = request.user.profile.takip_ettiklerim.all()
     takipçi_listesi = request.user.profile.takipçiler.all()
+    takip_sayisi = 10
+    paginatör = Paginator(takip_listesi,takip_sayisi )
+    sayfa_numarasi = request.GET.get('sayfa')  # URL parametresinden sayfa numarasını alın
+    sayfa = paginatör.get_page(sayfa_numarasi)
 
     context = {
         'user': user,
+        'sayfa':sayfa,
         'takip_listesi':takip_listesi,
         'takipçi_listesi':takipçi_listesi,
         'katildigi_etkinlikler': katildigi_etkinlikler,

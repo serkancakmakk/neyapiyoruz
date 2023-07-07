@@ -101,6 +101,16 @@
           </div>
         </div>
       </div>
+      {% if sayfa.has_previous %}
+  <a href="?sayfa={{ sayfa.previous_page_number }}">Önceki</a>
+{% endif %}
+
+<span class="current-page">{{ sayfa.number }}</span>
+
+{% if sayfa.has_next %}
+  <a href="?sayfa={{ sayfa.next_page_number }}">Sonraki</a>
+{% endif %}
+
       <div class="col-sm">
         <h3>Katıldığı Etkinlikler:</h3>
         <table class="table">
