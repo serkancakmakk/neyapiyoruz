@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/oy_durumu.css' %}">
 {% if engellendin %}
 <div class="content"> <!-- Start Content -->
   <div class="card"><!-- Start Card -->
@@ -32,34 +33,51 @@
           {% if user.profile.profile_img %}
           <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
           {% endif %}
+          
         </div><!-- End d-flex -->
       </div><!-- End col-md-4 -->
       <div class="col-md-8"><!-- Start col-md-8 -->
         <div class="card-body"><!-- Start card-body -->
-
+          <div id ="profil_oy">
+            <form method="POST" action="{% url 'pozitif_oy' user.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success"title="Olumlu Oy"><i class="fa-solid fa-heart" {% if oy_durumu_pozitif %}id="pHeart" {% endif %}></i></button>
+              </button>
+            </form>
+            {{p_oy}}
+            <form method="POST" action="{% url 'negatif_oy' user.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger" title="Olumsuz Oy"><i class="fa-solid fa-heart" {% if oy_durumu_negatif %}id="nHeart" {% endif %}></i></button>
+              </button>
+            </form>
+            
+           </div>
+          <div id="engelle">
+            <form method="POST" action="{% url 'engelle' user.pk %}">
+              {% csrf_token %}
+              <button type="submit" id="block" class="btn btn-{% if engelli %}success{% else %}danger{% endif %}">
+                <i class="fa-solid fa-user-lock fa-sm"></i>
+                <span class="tooltip-text">{% if engelli %} Engeli Kaldır  {% else %}  Engelle {% endif %}</span>
+              </button>
+            </form>
+            {% if not engelli %}
+            <form method="POST" action="{% url 'takip_et' user.pk %}">
+              {% csrf_token %}
+              <button type="submit" id="follow" class="btn btn-success">
+                <i class="fa-solid fa-user-{% if takipte %}minus{% else %}plus{% endif %} fa-sm"></i>
+                <span class="tooltip-text">{% if takipte %} Takibi Bırak {% else %} Takip Et {% endif %}</span>
+              </button>
+            </form>
+          {% endif %}
+        </div>
 
           <h5 class="card-title">{{ user.profile.ad|title }} {{ user.profile.soyad|title }}</h5> 
           {% if engellendin %}
           Bu kullanıcı sizi engelledi
           {% endif %}
           <div>
-            <form method="POST" action="{% url 'engelle' user.pk %}">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-{% if engelli %}success{% else %}danger{% endif %}">
-                <i class="fa-solid fa-user-gear"></i>{% if engelli %} Engeli Kaldır{% else %} Engelle {% endif %}
-              </button>
-            </form>
-            
-            {% if not engelli %}
-            <form method="POST" action="{% url 'takip_et' user.pk %}">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-success">
-                <i class="fa-solid fa-user-{% if takipte %}minus{% else %}plus{% endif %}"></i> {% if takipte %} Takibi Bırak {% else %} Takip Et {% endif %}
-              </button>
-            </form>
-            {% endif %}
-          </div>
-
+           
+          
           <p class="card-text">@<small>{{user.username}}</small></p>
           <ul class="list-group list-group-flush">
             {% if user.profile.telefon != None %}
@@ -79,6 +97,7 @@
   </div><!-- End Card -->
 </div><!-- End Content -->
 <br/>
+{{user.profile.pozitif_oy.count}}
 <h1>
   <center> 
     Son Etkinlikleri
@@ -103,5 +122,39 @@
     {% endfor %}
   </div>
 </div>
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="errorModalLabel">Bilgi</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.level_tag }}">
+              {% for message in messages %}
+                {{ message }}
+              {% endfor %}
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  {% if messages %}
+    $(document).ready(function() {
+      $('#errorModal').modal('show');
+    });
+  {% endif %}
+</script>
 {% endif %}
 {% endblock %}

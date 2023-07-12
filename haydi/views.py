@@ -516,10 +516,10 @@ def show_profile(request, username, year=None, month=None):
 
     data = create_calendar(year, month)
     user = User.objects.get(username=username)
-    
     if user == request.user:
         return redirect('my_profile')
-   
+    oy_durumu_pozitif =  user.profile.pozitif_oylar.filter(pk=request.user.pk).exists()
+    oy_durumu_negatif =  user.profile.negatif_oylar.filter(id=request.user.pk).exists()
     katildigi_etkinlikler = user.profile.katildigi_etkinlikler.all()
     katildigi_etkinlik_sayisi = katildigi_etkinlikler.count()
     olusturdugu_etkinlikler = user.profile.olusturdugu_etkinlikler.all()
@@ -529,11 +529,17 @@ def show_profile(request, username, year=None, month=None):
     engelli = request.user.profile.engelli_listesi.filter(pk=user.pk).exists()
     engellendin = user.profile.engelli_listesi.filter(pk=request.user.pk).exists()
     takipte = request.user.profile.takip_ettiklerim.filter(pk=user.pk).exists()
+    pozitif_oylar = user.profile.pozitif_oylar.all() 
+
+
 
     context = {
         'user': user,
         'engelli':engelli,
         'takipte':takipte,
+        'pozitif_oylar':pozitif_oylar,
+        'oy_durumu_pozitif':oy_durumu_pozitif,
+        'oy_durumu_negatif':oy_durumu_negatif,
         'engellendin':engellendin,
         'katildigi_etkinlikler': katildigi_etkinlikler,
         'katildigi_etkinlik_sayisi': katildigi_etkinlik_sayisi,
@@ -1044,16 +1050,27 @@ def engelle(request, pk):
     takipte = takip_edilen.profile.takipçiler.filter(pk=user.pk).exists()
     if request.method == "POST":
        if request.user.profile.engelli_listesi.filter(pk=engellenen.pk).exists():
-            user.profile.engelli_listesi.remove(engellenen.pk)
-            print('çalıştı engel kaldır')
-            return redirect('show_profile', username=username)
             
+            user.profile.engelli_listesi.remove(engellenen.pk)
+            if Bildirim.objects.filter(user=takip_edilen, etkilesim=user).exists():
+                bildirim = Bildirim.objects.get(user=takip_edilen, etkilesim=user)
+                bildirim.delete()
+                return redirect('show_profile', username=username)
+            else:
+                print('çalıştı engel kaldır')
+                return redirect('show_profile', username=username)
+   
        else:
             user.profile.engelli_listesi.add(engellenen.pk)
             user.profile.takip_ettiklerim.remove(takip_edilen.pk)
             takip_edilen.profile.takipçiler.remove(user.pk)
-            print('çalıştı')
-            return redirect('show_profile', username=username)
+            if Bildirim.objects.filter(user=takip_edilen, etkilesim=user).exists():
+                bildirim = Bildirim.objects.get(user=takip_edilen, etkilesim=user)
+                bildirim.delete()
+                return redirect('show_profile', username=username)
+            else:
+                print('çalıştı')
+                return redirect('show_profile', username=username)
     else:
             return redirect('show_profile', username=username)
 def takip_et(request,pk):
@@ -1092,4 +1109,55 @@ def takipciyi_cikar(request,pk):
         user.profile.save()
         return redirect('my_profile')
     else:
-        pass
+        return redirect(request.META.get('HTTP_REFERER')) # Hangi sayfadan geldiysen ona yönlendiriyor
+
+def profil_pozitif_oy(request, pk):
+    oy_veren = request.user
+    oy_alan = get_object_or_404(User, pk=pk)
+    
+    if request.method == "POST":
+        if oy_alan.profile.takipçiler.filter(pk=oy_veren.pk).exists():
+            if oy_alan.profile.negatif_oylar.filter(pk=oy_veren.pk).exists():
+                oy_alan.profile.negatif_oylar.remove(oy_veren.pk)
+                oy_alan.profile.pozitif_oylar.add(oy_veren.pk)
+                oy_alan.profile.save()
+                return redirect(request.META.get('HTTP_REFERER'))  # Hangi sayfadan geldiysen ona yönlendiriyor
+            # oy_veren oy_alan'ı takip ediyor
+            if not oy_alan.profile.pozitif_oylar.filter(pk=oy_veren.pk).exists():
+                    oy_alan.profile.pozitif_oylar.add(oy_veren.pk)
+                    oy_alan.profile.save()
+            else:
+                    oy_alan.profile.pozitif_oylar.remove(oy_veren.pk)
+                    oy_alan.profile.save()
+                
+            return redirect(request.META.get('HTTP_REFERER'))  # Hangi sayfadan geldiysen ona yönlendiriyor
+        else:
+            messages.success(request, 'Sadece takip ettiğiniz kişiler için oy verebilirsiniz')
+            return redirect(request.META.get('HTTP_REFERER'))  # Hangi sayfadan geldiysen ona yönlendiriyor
+def profil_negatif_oy(request, pk):
+    oy_veren = request.user
+    oy_alan = get_object_or_404(User, pk=pk)
+    
+    if request.method == "POST":
+        if oy_alan.profile.takipçiler.filter(pk=oy_veren.pk).exists():
+            if oy_alan.profile.pozitif_oylar.filter(pk=oy_veren.pk).exists():
+                oy_alan.profile.pozitif_oylar.remove(oy_veren.pk)
+                oy_alan.profile.negatif_oylar.add(oy_veren.pk)
+                oy_alan.profile.save()
+                return redirect(request.META.get('HTTP_REFERER'))  # Hangi sayfadan geldiysen ona yönlendiriyor
+            else:
+            # oy_veren oy_alan'ı takip ediyor
+                if not oy_alan.profile.negatif_oylar.filter(pk=oy_veren.pk).exists():
+                    oy_alan.profile.negatif_oylar.add(oy_veren.pk)
+                    oy_alan.profile.save()
+                else:
+                    oy_alan.profile.negatif_oylar.remove(oy_veren.pk)
+                    oy_alan.profile.save()
+                
+                return redirect(request.META.get('HTTP_REFERER'))  # Hangi sayfadan geldiysen ona yönlendiriyor
+        else:
+                messages.success(request, 'Sadece takip ettiğiniz kişiler için oy verebilirsiniz')
+                return redirect(request.META.get('HTTP_REFERER'))  # Hangi sayfadan geldiysen ona yönlendiriyor
+
+
+        

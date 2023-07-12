@@ -117,6 +117,8 @@ class Profile(models.Model):
     engelli_listesi = models.ManyToManyField(User,null=True,blank=True,symmetrical=False,related_name='engelli')
     takip_ettiklerim = models.ManyToManyField(User,null=True,blank=True,symmetrical=False,related_name='takip_edilen')
     takipçiler = models.ManyToManyField(User,null=True,blank=True,symmetrical=False,related_name='takipçilerim')
+    pozitif_oylar = models.ManyToManyField(User, related_name='pozitif_oylar',null=True,blank=True)
+    negatif_oylar = models.ManyToManyField(User, related_name='negatif_oylar',null=True,blank=True)
     @property
     def username(self):
         return self.user.username

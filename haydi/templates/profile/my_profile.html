@@ -4,13 +4,13 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/update_profile.css' %}">
 <div class="row">
-  <div class="content col-lg-6"> <!-- Start Content -->
+  <div class="content col-lg-6 "> <!-- Start Content -->
     <div class="card"><!-- Start Card -->
       <div class="row g-0"><!-- Start row g-0 -->
         <div class="col-md-4 sm-8"><!-- Start col-md-4 -->
           <div class="d-flex align-items-center justify-content-center" style="height: 100%;"><!-- Start d-flex -->
             {% if user.profile.profile_img and user.profile.profile_img.url %}
-              <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+              <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start ml-4">
             {% else %}
               
             {% endif %}
@@ -20,6 +20,7 @@
           <div class="card-body"><!-- Start card-body -->
             <h5 class="card-title">{{ user.profile.ad|title }} {{ user.profile.soyad|title }}</h5>
             <p class="card-text">@<small>{{user.username}}</small></p>
+            pozitif {{pozitif_oy_sayisi}}
             <ul class="list-group list-group-flush">
               {% if user.profile.telefon != None %}
                 <li class="list-group-item"><i class="mdi mdi-phone font-size-15 align-middle pe-2 text-primary"></i> {{ user.profile.telefon }}</li>
@@ -37,11 +38,11 @@
       </div><!-- End row g-0 -->
     </div><!-- End Card -->
     
-    <h1 class="text-center">Son Etkinliklerim</h1>
+    <h1 class="text-center mt-4">Son Etkinliklerim</h1>
 
     <div class="row justify-content-center">
       {% for etkinlik in son_etkinliklerim %}
-      <div class="col-lg-6 col-md-6 col-sm-12 mt-2 d-flex">
+      <div class="col-lg-6 col-md-6 col-sm-12 mt-2 d-flex  mb-4">
         <div class="card" style="width: 18rem; height: 100%;">
           <div class="card-body">
             <h5 class="card-title">{{ etkinlik.ad }}</h5>
@@ -57,8 +58,9 @@
     </div>
     
   </div><!-- End Content -->
-  
-  <div class="col-lg-3 col-sm-8">
+  <br/>
+  <br/>
+  <div class="col-lg-3 col-sm-3"  id="takipci">
     <ul class="list-group">
       <li class="list-group-item d-flex justify-content-center">
         <button type="button" class="btn btn-info">
@@ -92,7 +94,7 @@
       {% endif %}
     </div>
   </div>
-  <div class="col-lg-3 col-sm-8">
+  <div class="col-lg-3 col-sm-3" id="takipci">
     
     <ul class="list-group">
       <li class="list-group-item d-flex justify-content-center">

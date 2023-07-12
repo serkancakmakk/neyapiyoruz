@@ -5,3 +5,12 @@
 .list-group-item {
     padding: 0; /* Boyutları istediğiniz değerlere ayarlayın */ /* Yazı boyutunu istediğiniz değere ayarlayın */
   }
+
+  @media screen and (max-width: 767.98px) {
+    #takipci {
+        flex-basis: 25%;
+        max-width: 40%;
+        margin-left: 5%;
+        margin-right: 5%;
+    }
+}

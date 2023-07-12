@@ -5,26 +5,33 @@
 <link rel="stylesheet" href="{% static 'css/update_profile.css' %}">
 <div class="container">
   <div class="row">
-    <div class="col-md-8 col-lg-4 order-md-2">
-        {% if user.profile.profile_img %}
-          <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
-        {% else %}
-        yok
-        {% endif %}
-      <div class="form-group">
-        <label for="id_profile_img">Profil Resmi</label>
-        <input type="file" class="form-control-file" id="id_profile_img" name="profile_img">
-      </div>
-      <div class="form-group">
-        <p for="id_clear_profile_img" class="form-check-label center">Profil Resmini Kaldır
-          <input type="checkbox" id="id_clear_profile_img" name="clear_profile_img" class="form-check-input ml-4">
-        </p>
-      </div>
-      <button type="submit" class="btn btn-primary">Kaydet</button>
-    </div>
     
-    <div class="col-md-8 col-lg-8 order-md-1">
+    <div class="col-md-12 col-lg-12 order-md-1">
       <form method="post" enctype="multipart/form-data" class="mx-auto">
+        <div class="col-md-8 col-lg-4 mx-auto text-center">
+          {% if user.profile.profile_img %}
+            <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
+          {% else %}
+          yok
+          {% endif %}
+        <div class="form-group">
+          <label for="id_profile_img">Profil Resmi</label>
+          <input type="file" class="form-control-file" id="id_profile_img" name="profile_img">
+        </div>
+        {% if user.profile.profile_img %}
+        <div class="form-group">
+          <p for="id_clear_profile_img" class="form-check-label center">Profil Resmini Kaldır
+            <input type="checkbox" id="id_clear_profile_img" name="clear_profile_img" class="form-check-input ml-4">
+          </p>
+        </div>
+       
+        <button type="submit" class="btn btn-danger">Kaldır</button>
+      {% else %}
+      <button type="submit" class="btn btn-success">Kaydet</button>
+      {% endif %}
+        
+      </div>
+      
         {% csrf_token %}
         <div class="row">
           <div class="col-md-6">

@@ -48,6 +48,8 @@ path('gundetay/<int:day>-<str:month>-<int:year>/', views.gundetay, name='gundeta
 path('engelle/<int:pk>', views.engelle, name='engelle'),
 path('takip_et/<int:pk>', views.takip_et, name='takip_et'),
 path('takipciyi_cikar/<int:pk>', views.takipciyi_cikar, name='takipciyi_cikar'),
+path('pozitif_oy/<int:pk>',views.profil_pozitif_oy,name="pozitif_oy"),
+path('negatif_oy/<int:pk>',views.profil_negatif_oy,name="negatif_oy"),
 
 # path('gundetay/', views.gundetay, name='gundetay'),
 # path('gundetay/<str:selected_date>/', views.gundetay_selected, name='gundetay_selected'),
