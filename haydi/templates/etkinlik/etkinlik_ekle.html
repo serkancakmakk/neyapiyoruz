@@ -51,6 +51,14 @@
               <input id="katilimciAlan" type="number" name="{{ form.kontenjan.name }}" value="{{ form.kontenjan.value }}" class="form-control" placeholder="Kaç kişi katılabilir?" min="0">
             </div>
           </div>
+          <div class="form-group col-md-4 mb-3">
+            <div class="checkbox-and-input-container">
+              <input id="id_katilimci_kontrol" type="checkbox" name="{{ form.takipçiye_özel.name }}" class="form-check-input" {% if form.katilimci_kontrol.value %}checked{% endif %}>
+              <label for="id_katilimci_kontrol" class="form-check-label">
+                <span>Takipçiye Özel Yap</span>
+              </label>
+            </div>
+          </div>
           
           
           

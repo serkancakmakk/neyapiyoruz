@@ -28,6 +28,7 @@
                         <li><strong>İlçe:</strong> {{ mekan.ilce }}</li>
                         <li><strong>Oluşturan:</strong> {{ mekan.olusturan }}</li>
                         <li><strong>Onaylı:</strong> {{ mekan.onayli }}</li>
+                        <li><strong>Açık:</strong> {% if mekan.acik == True %}Etkinliğe Açık{% else %} Etkinliğe Kapalı {% endif %}</li>
                         <li><strong>Onay Tarihi:</strong> {{ mekan.onay_tarihi }}</li>
                     </ul>
                     {% if mekan.olusturan != request.user %}

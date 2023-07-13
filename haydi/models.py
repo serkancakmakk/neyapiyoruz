@@ -64,6 +64,7 @@ class Event(models.Model):
     açiklama = RichTextField()
     yönetici = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='yönetici_event_set')
     silindi = models.BooleanField(default=False)
+    takipçiye_özel = models.BooleanField(default=False)
     def get_katilimcilar(self):
         return self.katilimcilar.all()
     def __str__(self):
@@ -101,7 +102,7 @@ class YorumCevap(models.Model):
         return self.cevap
 
 
-
+from django.contrib.auth.models import Permission
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     ad = models.CharField(max_length=20)
@@ -119,6 +120,7 @@ class Profile(models.Model):
     takipçiler = models.ManyToManyField(User,null=True,blank=True,symmetrical=False,related_name='takipçilerim')
     pozitif_oylar = models.ManyToManyField(User, related_name='pozitif_oylar',null=True,blank=True)
     negatif_oylar = models.ManyToManyField(User, related_name='negatif_oylar',null=True,blank=True)
+    yetkiler = models.ManyToManyField(Permission, blank=True)
     @property
     def username(self):
         return self.user.username

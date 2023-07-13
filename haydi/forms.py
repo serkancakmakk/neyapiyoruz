@@ -67,12 +67,13 @@ class EtkinlikForm(forms.ModelForm):
     gün = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     kontenjan = forms.IntegerField(label='Kontenjan', required=False)
     katilimci_kontrol = forms.BooleanField(label='Katılımcı Kontrolü', required=False)
+    takipçiye_özel = forms.BooleanField(label='Takipçiye Özel', required=False)
     saat = forms.TimeField(widget=TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
     açiklama = forms.CharField(widget=forms.Textarea)
 
     class Meta:
         model = Event
-        fields = ['ad', 'gün', 'mekan', 'saat','sehir', 'ilce', 'açiklama','kontenjan','katilimci_kontrol']
+        fields = ['ad', 'gün', 'mekan', 'saat','sehir', 'ilce', 'açiklama','kontenjan','katilimci_kontrol','takipçiye_özel']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -92,7 +93,7 @@ class EtkinlikUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Event
-        fields = ['gün', 'mekan', 'saat', 'açiklama','katilimci_kontrol','kontenjan']
+        fields = ['gün', 'mekan', 'saat', 'açiklama','katilimci_kontrol','kontenjan','takipçiye_özel']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -105,8 +106,10 @@ class EtkinlikUpdateForm(forms.ModelForm):
 
         if self.instance.katilimci_kontrol:
             self.initial['katilimci_kontrol'] = True
+            self.initial['takipçiye_özel'] = True
         else:
             self.initial['katilimci_kontrol'] = False
+            self.initial['takipçiye_özel'] = False
 
     def clean_katilimci_sayisi(self):
         katilimci_kontrol = self.cleaned_data.get('katilimci_kontrol')

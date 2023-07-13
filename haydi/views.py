@@ -22,7 +22,8 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator, Page
-
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required
 # def navbar(request):
 #     bildirimler = Bildirim.objects.filter(bildirim_alani=request.user.profile).order_by('-bildirim.olusturulma_tarihi')
@@ -37,6 +38,10 @@ from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def bildirim_acildi(request):
     user = request.user
+    permission = Permission.objects.get(codename='event_olustur')
+    user = User.objects.get(username=user.profile.username)
+    user.profile.yetkiler.add(permission)
+    user.save()
     profile = user.profile
     if request.method == "POST":
         if profile.bildirim_sayisi == 0:
@@ -299,44 +304,76 @@ def etkinlik_sil(request, slug):
         messages.error(request, "Geçersiz istek")
 
     return redirect('eventdetail', slug=slug)
+# def your_view(request):
+#     # Yetkileri oluşturmak için view fonksiyonuna kodu ekleyin
+#     try:
+#         content_type1 = ContentType.objects.get_for_model(Event)
+#         permission1, created1 = Permission.objects.get_or_create(
+#             codename='add_event',
+#             name='Event Oluştur',
+#             content_type=content_type1
+#         )
 
+#         content_type2 = ContentType.objects.get_for_model(Başka_BİR_YETKİ)
+#         permission2, created2 = Permission.objects.get_or_create(
+#             codename='add_baska_yetki',
+#             name='Başka Yetki Oluştur',
+#             content_type=content_type2
+#         )
 
+#         content_type3 = ContentType.objects.get_for_model(Başka_BİR_YETKİ_2)
+#         permission3, created3 = Permission.objects.get_or_create(
+#             codename='add_baska_yetki_2',
+#             name='Başka Yetki 2 Oluştur',
+#             content_type=content_type3
+#         )
+
+#     except Permission.DoesNotExist:
+#         # Yetki zaten varsa yapılacak işlemler
+#         pass
+
+#     # Diğer view kodlarınızı buraya ekleyin
+#     # ...
+
+#     # Response döndürün
 
 
 @login_required  # Kullanıcının oturum açmış olması gerektiğini kontrol etmek için kullanabilirsiniz
+
 def etkinlik_ekle(request, year=None, month=None):
-    if year is None:
-        year = datetime.now().year
-    if month is None:
-        month = datetime.now().strftime('%B')
+        if year is None:
+            year = datetime.now().year
+        if month is None:
+            month = datetime.now().strftime('%B')
 
-    if request.method == "POST":
-        form = EtkinlikForm(request.POST)
-        if form.is_valid():
-            etkinlik = form.save(commit=False)
-            etkinlik.yönetici = request.user
+        if request.method == "POST":
+            form = EtkinlikForm(request.POST)
+            if form.is_valid():
+                etkinlik = form.save(commit=False)
+                etkinlik.yönetici = request.user
 
-            # Aynı gün ve saatte etkinlik kontrolü
-            existing_event = request.user.profile.olusturdugu_etkinlikler.filter(gün=etkinlik.gün, saat=etkinlik.saat)
-            if existing_event:
-                form.add_error(None, 'Bu saatte başka bir etkinlik zaten var.')
-            elif etkinlik.gün.date() < date.today():
-                form.add_error('gün', 'Geçmiş tarihe etkinlik ekleyemezsiniz.')
-            else:
-                now = datetime.now().time()
-                if etkinlik.gün.date() == date.today() and etkinlik.saat < now:
-                    form.add_error('saat', 'Geçmiş saate etkinlik ekleyemezsiniz.')
+                # Aynı gün ve saatte etkinlik kontrolü
+                existing_event = request.user.profile.olusturdugu_etkinlikler.filter(gün=etkinlik.gün, saat=etkinlik.saat)
+                if existing_event:
+                    form.add_error(None, 'Bu saatte başka bir etkinlik zaten var.')
+                elif etkinlik.gün.date() < date.today():
+                    form.add_error('gün', 'Geçmiş tarihe etkinlik ekleyemezsiniz.')
                 else:
-                    etkinlik.save()
-                    form.save_m2m()  # Many-to-many ilişkileri kaydet
-                    slug = etkinlik.slug
-                    request.user.profile.olusturdugu_etkinlikler.add(etkinlik)  # Kullanıcının oluşturduğu etkinliği ekleyin
-                    return redirect('eventdetail', slug=slug)
-    else:
-        form = EtkinlikForm()
+                    now = datetime.now().time()
+                    if etkinlik.gün.date() == date.today() and etkinlik.saat < now:
+                        form.add_error('saat', 'Geçmiş saate etkinlik ekleyemezsiniz.')
+                    else:
+                        etkinlik.save()
+                        form.save_m2m()  # Many-to-many ilişkileri kaydet
+                        slug = etkinlik.slug
+                        request.user.profile.olusturdugu_etkinlikler.add(etkinlik)  # Kullanıcının oluşturduğu etkinliği ekleyin
+                        return redirect('eventdetail', slug=slug)
+        else:
+            form = EtkinlikForm()
+            data = create_calendar(year, month)
+            return render(request, 'etkinlik/etkinlik_ekle.html', {'form': form, **data})
 
-    data = create_calendar(year, month)
-    return render(request, 'etkinlik/etkinlik_ekle.html', {'form': form, **data})
+        
 
 
 
@@ -410,73 +447,63 @@ def update_profile(request, year=None, month=None):
 
 def katilimci_ol(request, slug):
     etkinlik = get_object_or_404(Event, slug=slug)
+    user = request.user
     engellendin = etkinlik.yönetici.profile.engelli_listesi.filter(pk=request.user.pk).exists()
+    
     katilimcilar = etkinlik.katilimcilar.all()
     now = datetime.now()
-    user = request.user
+    katildigi_etkinlikler = request.user.profile.katildigi_etkinlikler.filter(gün=etkinlik.gün, saat=etkinlik.saat)
     kontenjan = etkinlik.kontenjan
     event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
     son_katilma_saati = event_datetime - timedelta(hours=1)
     if etkinlik.yönetici == request.user:
         messages.error(request, "Etkinlik yöneticisi sizsiniz")
         print('Yönetici Alanı Çalıştır')
-    else:
-        if engellendin:
+    if etkinlik.takipçiye_özel:
+        if not etkinlik.yönetici.profile.takipçiler.filter(pk=user.pk).exists():
+            messages.error(request, "Takipçisi Olmadığınız için katilamazsınız.")
+            return redirect('eventdetail', slug=slug)
+    if engellendin:
             messages.error(request, "Etkinlik Yöneticisinin Engellenen Listesindesin Bu Etkinliğe Katılamazsın.")
             return redirect('home')
-        
-        if etkinlik.katilimci_kontrol == True:
-            if kontenjan == 0:
-                messages.info(request, "Etkinlik Daha Fazla Katılımcı Kabul Etmiyor")
-                print('Doğru Çalışıyor Gibi')
-                return redirect('eventdetail', slug=slug)
-        
-        if event_datetime >= now:  # Etkinlik henüz gerçekleşmemişse
-            katildigi_etkinlikler = request.user.profile.katildigi_etkinlikler.filter(gün=etkinlik.gün, saat=etkinlik.saat) # Katıldığı etkinlikleri giriş yapan kullanıcının etkinlikleri ile gün ve saat olarak filtreledim.
-            if katildigi_etkinlikler.exists():
-                messages.error(request, "Aynı saat ve günde zaten bir etkinliğe katıldınız. Başka bir etkinliğe katılamazsınız.")
-                print('Doğru Çalışıyor Gibi')
-                return redirect('eventdetail', slug=slug)
+    if event_datetime <= now:  # Etkinlik henüz gerçekleşmemişse
+        messages.error(request, "Etkinlik günü geçtiği için bu etkinliğe katılmanız mümkün değil!")
+        return redirect('eventdetail', slug=slug)
+    if katildigi_etkinlikler.exists():
+            messages.error(request, "Aynı saat ve günde zaten bir etkinliğe katıldınız. Başka bir etkinliğe katılamazsınız.")
+            print('Doğru Çalışıyor Gibi')
+            return redirect('eventdetail', slug=slug)
+    else:
             
-            if son_katilma_saati > now:
-                # Kullanıcının profiline etkinliği ekle
-                etkinlik.katilimcilar.add(request.user)  # Etkinlik nesnesine kullanıcıyı ekle
-                request.user.profile.katildigi_etkinlikler.add(etkinlik)
-                bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{user.username} adlı kullanıcı {etkinlik.ad} adlı etkinliğinize katıldı.")
-                etkinlik.yönetici.profile.bildirimler.add(bildirim)
-                etkinlik.yönetici.profile.bildirim_sayisi += 1 
-                etkinlik.yönetici.profile.save()
-                bildirim.save()
-                if kontenjan == 0:
-                    bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{etkinlik.ad} adlı etkinliğinizin kontenjanı doldu.")
-                    etkinlik.yönetici.profile.bildirimler.add(bildirim)
-                    etkinlik.yönetici.profile.bildirim_sayisi += 1 
-                    etkinlik.yönetici.profile.save()
-                    bildirim.save()
-                print('Bildirim Kaydetti')
-                etkinlik.yönetici.save()
-
-                
-                if etkinlik.katilimci_kontrol == True:
-                    etkinlik.kontenjan -= 1
-                    etkinlik.save()
-                    print('Herhangi bir yere takılmadı, eklendi')
-                  
-
-
-
-            else:
+        if son_katilma_saati < now:
                 messages.info(request, "Etkinlik saatine 1 saatten az bir süre süre kaldığı için bu etkinliğe katılmanız mümkün değil!")
                 print('Etkinlik Saatine 1 saatten fazla bir süre kalmadığı yer çalıştı.')
+                return redirect('eventdetail', slug=slug)
+        if etkinlik.katilimci_kontrol == True:
+            if etkinlik.kontenjan == 0:
+                messages.info(request, "kontenjan yok")
+                print('Etkinlik Saatine 1 saatten fazla bir süre kalmadığı yer çalıştı.')
+                return redirect('eventdetail', slug=slug)
+        if kontenjan == 0:
+            bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=etkinlik.yönetici, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{etkinlik.ad} adlı etkinliğinizin kontenjanı doldu.")
+            etkinlik.yönetici.profile.bildirimler.add(bildirim)
+            etkinlik.yönetici.profile.bildirim_sayisi += 1 
+            etkinlik.yönetici.profile.save()
+            bildirim.save()
         else:
-            messages.error(request, "Etkinlik günü geçtiği için bu etkinliğe katılmanız mümkün değil!")
-            print('Etkinlik Gününün Geçtiği yer çalıştı.')
-
-    return redirect('eventdetail', slug=slug)
-
-
-
-
+            
+                                    # Kullanıcının profiline etkinliği ekle
+            etkinlik.katilimcilar.add(request.user)  # Etkinlik nesnesine kullanıcıyı ekle
+            request.user.profile.katildigi_etkinlikler.add(etkinlik)
+            bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{user.username} adlı kullanıcı {etkinlik.ad} adlı etkinliğinize katıldı.")
+            etkinlik.yönetici.profile.bildirimler.add(bildirim)
+            etkinlik.yönetici.profile.bildirim_sayisi += 1 
+            etkinlik.kontenjan -= 1
+            etkinlik.yönetici.profile.save()
+            bildirim.save()
+            print('Bildirim Kaydetti')
+            etkinlik.save()
+            return redirect('eventdetail', slug=slug)
 
 
 def katilmayi_birak(request, slug):
@@ -518,6 +545,7 @@ def show_profile(request, username, year=None, month=None):
     user = User.objects.get(username=username)
     if user == request.user:
         return redirect('my_profile')
+    
     oy_durumu_pozitif =  user.profile.pozitif_oylar.filter(pk=request.user.pk).exists()
     oy_durumu_negatif =  user.profile.negatif_oylar.filter(id=request.user.pk).exists()
     katildigi_etkinlikler = user.profile.katildigi_etkinlikler.all()
@@ -530,6 +558,7 @@ def show_profile(request, username, year=None, month=None):
     engellendin = user.profile.engelli_listesi.filter(pk=request.user.pk).exists()
     takipte = request.user.profile.takip_ettiklerim.filter(pk=user.pk).exists()
     pozitif_oylar = user.profile.pozitif_oylar.all() 
+    rating = pozitif_oylar.count() *5
 
 
 
@@ -537,6 +566,7 @@ def show_profile(request, username, year=None, month=None):
         'user': user,
         'engelli':engelli,
         'takipte':takipte,
+        'rating':rating,
         'pozitif_oylar':pozitif_oylar,
         'oy_durumu_pozitif':oy_durumu_pozitif,
         'oy_durumu_negatif':oy_durumu_negatif,

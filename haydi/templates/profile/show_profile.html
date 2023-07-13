@@ -8,6 +8,7 @@
     <div class="row g-0"><!-- Start row g-0 -->
       <div class="col-md-4"><!-- Start col-md-4 -->
         <div class="d-flex align-items-center justify-content-center" style="height: 100%;"><!-- Start d-flex -->
+          
           {% if user.profile.profile_img %}
           <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
           {% endif %}
@@ -29,7 +30,15 @@
   <div class="card"><!-- Start Card -->
     <div class="row g-0"><!-- Start row g-0 -->
       <div class="col-md-4"><!-- Start col-md-4 -->
+        <div class="rating">
+          <span class="star {% if rating >= 1 %}filled{% endif %}"></span>
+          <span class="star {% if rating >= 2 %}filled{% endif %}"></span>
+          <span class="star {% if rating >= 3 %}filled{% endif %}"></span>
+          <span class="star {% if rating >= 4 %}filled{% endif %}"></span>
+          <span class="star {% if rating >= 5 %}filled{% endif %}"></span>
+        </div>
         <div class="d-flex align-items-center justify-content-center" style="height: 100%;"><!-- Start d-flex -->
+          
           {% if user.profile.profile_img %}
           <img src="{{ user.profile.profile_img.url }}" alt="User Image" style="width: 150px; height: 150px;" class="rounded-start">
           {% endif %}
@@ -38,26 +47,29 @@
       </div><!-- End col-md-4 -->
       <div class="col-md-8"><!-- Start col-md-8 -->
         <div class="card-body"><!-- Start card-body -->
-          <div id ="profil_oy">
+          <div id="profil_oy">
             <form method="POST" action="{% url 'pozitif_oy' user.pk %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-success"title="Olumlu Oy"><i class="fa-solid fa-heart" {% if oy_durumu_pozitif %}id="pHeart" {% endif %}></i></button>
+              <button type="submit" class="btn btn-success" title="Olumlu Oy">
+                <i class="fa-solid fa-heart" {% if oy_durumu_pozitif %}id="pHeart" {% endif %}></i>
+                <span class="tooltip-text">Olumlu Oy</span>
               </button>
             </form>
             {{p_oy}}
             <form method="POST" action="{% url 'negatif_oy' user.pk %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-danger" title="Olumsuz Oy"><i class="fa-solid fa-heart" {% if oy_durumu_negatif %}id="nHeart" {% endif %}></i></button>
+              <button type="submit" class="btn btn-danger" title="Olumsuz Oy">
+                <i class="fa-solid fa-heart" {% if oy_durumu_negatif %}id="nHeart" {% endif %}></i>
+                <span class="tooltip-text">Olumsuz Oy</span>
               </button>
             </form>
-            
-           </div>
+          </div>
           <div id="engelle">
             <form method="POST" action="{% url 'engelle' user.pk %}">
               {% csrf_token %}
               <button type="submit" id="block" class="btn btn-{% if engelli %}success{% else %}danger{% endif %}">
                 <i class="fa-solid fa-user-lock fa-sm"></i>
-                <span class="tooltip-text">{% if engelli %} Engeli Kaldır  {% else %}  Engelle {% endif %}</span>
+                <span class="tooltip-text">{% if engelli %} Engeli Kaldır {% else %} Engelle {% endif %}</span>
               </button>
             </form>
             {% if not engelli %}
@@ -68,9 +80,9 @@
                 <span class="tooltip-text">{% if takipte %} Takibi Bırak {% else %} Takip Et {% endif %}</span>
               </button>
             </form>
-          {% endif %}
-        </div>
-
+            {% endif %}
+          </div>
+          
           <h5 class="card-title">{{ user.profile.ad|title }} {{ user.profile.soyad|title }}</h5> 
           {% if engellendin %}
           Bu kullanıcı sizi engelledi
