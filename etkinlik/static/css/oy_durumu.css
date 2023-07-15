@@ -21,10 +21,18 @@
   margin-right: 10px;
   
 }
-  .btn {
+.btn {
     position: relative;
   }
-  
+  #engelle-butonu {
+    font-size: inherit; /* Kalıtılan yazı boyutunu kullan */
+    padding: inherit; /* Kalıtılan kenar dolgusunu kullan */
+    display: inline-block; /* Satır içi öğe olarak görüntüle */
+    line-height: 40px; /* Buton yüksekliği ile aynı çizgi yüksekliği */
+    text-align: center; /* Metni ortala */
+    width: auto; /* Otomatik genişlik ayarı */
+    height: auto; /* Otomatik yükseklik ayarı */
+  }
   .tooltip-text {
     visibility: hidden;
     opacity: 0;

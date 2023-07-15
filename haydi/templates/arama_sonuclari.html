@@ -45,7 +45,15 @@
         {% endfor %}
       </div>
     </div>
+    <h3>Profiller</h3>
+    <ul>
+      {% for profil in profiller %}
+      <li><a href="{% url 'show_profile' profil.user.username %}">{{profil.user.username}}</a></li>
 
+      {% empty %}
+        <li>Aradığınız kriterlere uygun profil bulunamadı.</li>
+      {% endfor %}
+    </ul>
 
 
 

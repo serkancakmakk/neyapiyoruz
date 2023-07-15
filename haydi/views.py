@@ -251,14 +251,8 @@ def home(request, year=None, month=None):
 
 
 from django.db.models import Q
-def arama_sonuclari(request, year=None, month=None):
-    if year is None:
-        year = datetime.now().year
-    if month is None:
-        month = datetime.now().strftime('%B')
-
-    data = create_calendar(year, month)
-        
+def arama_sonuclari(request):
+    
     if request.method == "POST":
         searched = request.POST['searched']
         
@@ -273,10 +267,14 @@ def arama_sonuclari(request, year=None, month=None):
             # Mekan veya ad alanında kısmi eşleşmeleri ara (büyük/küçük harf duyarlılığı olmadan)
             Q(mekan__adi__icontains=searched) | Q(ad__icontains=searched)
         )
-        
-        return render(request, 'arama_sonuclari.html', {'searched': searched, 'yerler': yerler, 'etkinlikler': etkinlikler, **data})
+        profiller = Profile.objects.filter(
+            # Mekan veya ad alanında kısmi eşleşmeleri ara (büyük/küçük harf duyarlılığı olmadan)
+            Q(user__username__icontains=searched) | Q(user__username__icontains=searched)
+        )
+
+        return render(request, 'arama_sonuclari.html', {'searched': searched, 'yerler': yerler,'profiller':profiller,'etkinlikler': etkinlikler,})
     else:
-        return render(request, 'arama_sonuclari.html', {**data})
+        return render(request, 'arama_sonuclari.html')
 def etkinlik_sil(request, slug):
     etkinlik = get_object_or_404(Event, slug=slug)
     katilimcilar = etkinlik.katilimcilar.all()
@@ -456,54 +454,72 @@ def katilimci_ol(request, slug):
     kontenjan = etkinlik.kontenjan
     event_datetime = datetime.combine(etkinlik.gün, etkinlik.saat)
     son_katilma_saati = event_datetime - timedelta(hours=1)
+    
     if etkinlik.yönetici == request.user:
         messages.error(request, "Etkinlik yöneticisi sizsiniz")
         print('Yönetici Alanı Çalıştır')
-    if etkinlik.takipçiye_özel:
-        if not etkinlik.yönetici.profile.takipçiler.filter(pk=user.pk).exists():
-            messages.error(request, "Takipçisi Olmadığınız için katilamazsınız.")
-            return redirect('eventdetail', slug=slug)
-    if engellendin:
-            messages.error(request, "Etkinlik Yöneticisinin Engellenen Listesindesin Bu Etkinliğe Katılamazsın.")
-            return redirect('home')
-    if event_datetime <= now:  # Etkinlik henüz gerçekleşmemişse
-        messages.error(request, "Etkinlik günü geçtiği için bu etkinliğe katılmanız mümkün değil!")
         return redirect('eventdetail', slug=slug)
-    if katildigi_etkinlikler.exists():
+    
+    if etkinlik.takipçiye_özel == True:
+        if not etkinlik.yönetici.profile.takipçiler.filter(pk=user.pk).exists():
+            messages.error(request, "Takipçisi Olmadığınız için katılamazsınız.")
+            return redirect('eventdetail', slug=slug)
+        
+        if engellendin:
+            messages.error(request, "Etkinlik Yöneticisinin Engellenen Listesindesin. Bu Etkinliğe Katılamazsınız.")
+            return redirect('home')
+        
+        if event_datetime <= now:  # Etkinlik henüz gerçekleşmemişse
+            messages.error(request, "Etkinlik günü geçtiği için bu etkinliğe katılmanız mümkün değil!")
+            return redirect('eventdetail', slug=slug)
+        
+        if katildigi_etkinlikler.exists():
             messages.error(request, "Aynı saat ve günde zaten bir etkinliğe katıldınız. Başka bir etkinliğe katılamazsınız.")
             print('Doğru Çalışıyor Gibi')
             return redirect('eventdetail', slug=slug)
-    else:
-            
+        
         if son_katilma_saati < now:
-                messages.info(request, "Etkinlik saatine 1 saatten az bir süre süre kaldığı için bu etkinliğe katılmanız mümkün değil!")
-                print('Etkinlik Saatine 1 saatten fazla bir süre kalmadığı yer çalıştı.')
-                return redirect('eventdetail', slug=slug)
+            messages.info(request, "Etkinlik saatine 1 saatten az bir süre kaldığı için bu etkinliğe katılmanız mümkün değil!")
+            print('Etkinlik Saatine 1 saatten fazla bir süre kalmadığı yer çalıştı.')
+            return redirect('eventdetail', slug=slug)
+        
         if etkinlik.katilimci_kontrol == True:
             if etkinlik.kontenjan == 0:
-                messages.info(request, "kontenjan yok")
+                messages.info(request, "Kontenjan yok")
                 print('Etkinlik Saatine 1 saatten fazla bir süre kalmadığı yer çalıştı.')
                 return redirect('eventdetail', slug=slug)
-        if kontenjan == 0:
-            bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=etkinlik.yönetici, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{etkinlik.ad} adlı etkinliğinizin kontenjanı doldu.")
-            etkinlik.yönetici.profile.bildirimler.add(bildirim)
-            etkinlik.yönetici.profile.bildirim_sayisi += 1 
-            etkinlik.yönetici.profile.save()
-            bildirim.save()
         else:
-            
-                                    # Kullanıcının profiline etkinliği ekle
+    # Kullanıcının profiline etkinliği ekle
             etkinlik.katilimcilar.add(request.user)  # Etkinlik nesnesine kullanıcıyı ekle
             request.user.profile.katildigi_etkinlikler.add(etkinlik)
             bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{user.username} adlı kullanıcı {etkinlik.ad} adlı etkinliğinize katıldı.")
             etkinlik.yönetici.profile.bildirimler.add(bildirim)
-            etkinlik.yönetici.profile.bildirim_sayisi += 1 
-            etkinlik.kontenjan -= 1
-            etkinlik.yönetici.profile.save()
-            bildirim.save()
-            print('Bildirim Kaydetti')
+            etkinlik.yönetici.profile.bildirim_sayisi += 1
             etkinlik.save()
             return redirect('eventdetail', slug=slug)
+        if etkinlik.katilimci_kontrol == True:
+                    etkinlik.katilimcilar.add(request.user)  # Etkinlik nesnesine kullanıcıyı ekle
+                    request.user.profile.katildigi_etkinlikler.add(etkinlik)
+                    bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{user.username} adlı kullanıcı {etkinlik.ad} adlı etkinliğinize katıldı.")
+                    etkinlik.yönetici.profile.bildirimler.add(bildirim)
+                    etkinlik.yönetici.profile.bildirim_sayisi += 1
+                    etkinlik.kontenjan -= 1
+                    bildirim.save()
+                    etkinlik.save()
+                    return redirect('eventdetail', slug=slug)
+        else:
+            etkinlik.katilimcilar.add(request.user)  # Etkinlik nesnesine kullanıcıyı ekle
+            request.user.profile.katildigi_etkinlikler.add(etkinlik)
+            bildirim = Bildirim.objects.create(etkinlik=etkinlik, etkilesim=user, bildirim_alani=etkinlik.yönetici.profile, bildirim=f"{user.username} adlı kullanıcı {etkinlik.ad} adlı etkinliğinize katıldı.")
+            etkinlik.yönetici.profile.bildirimler.add(bildirim)
+            etkinlik.yönetici.profile.bildirim_sayisi += 1
+            bildirim.save()
+            etkinlik.save()
+            return redirect('eventdetail', slug=slug)
+                    
+
+
+                        
 
 
 def katilmayi_birak(request, slug):

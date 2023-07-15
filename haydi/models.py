@@ -105,7 +105,7 @@ class YorumCevap(models.Model):
 from django.contrib.auth.models import Permission
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    ad = models.CharField(max_length=20)
+    ad = models.CharField(max_length=20, verbose_name='ad')
     soyad = models.CharField(max_length=20)
     profile_img = models.ImageField(upload_to=user_directory_path)
     email = models.EmailField(null=True, blank=True)
